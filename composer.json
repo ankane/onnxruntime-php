@@ -1,0 +1,32 @@
+{
+    "name": "ankane/onnxruntime",
+    "description": "Run ONNX models in PHP",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/ankane/onnxruntime-php/issues",
+        "source": "https://github.com/ankane/onnxruntime-php"
+    },
+    "authors": [
+        {
+            "name": "Andrew Kane",
+            "email": "andrew@ankane.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "OnnxRuntime\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">= 8.0",
+        "ext-ffi": ">= 8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    },
+    "scripts": {
+        "test": "phpunit tests",
+        "post-install-cmd": "OnnxRuntime\\Vendor::check",
+        "post-update-cmd": "OnnxRuntime\\Vendor::check"
+    }
+}
