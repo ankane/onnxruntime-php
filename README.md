@@ -90,7 +90,7 @@ $model->predict(
 
 ## Inference Session API
 
-You can also use the Inference Session API, which follows the [Python API](https://microsoft.github.io/onnxruntime/python/api_summary.html).
+You can also use the Inference Session API, which follows the [Python API](https://onnxruntime.ai/docs/api/python/api_summary.html).
 
 ```php
 $session = new OnnxRuntime\InferenceSession('model.onnx');
