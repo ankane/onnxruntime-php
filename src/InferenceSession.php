@@ -99,34 +99,8 @@ class InferenceSession
         $this->checkStatus(($this->api->GetAllocatorWithDefaultOptions)(\FFI::addr($allocator)));
         $this->allocator = $allocator;
 
-        $this->inputs = [];
-        $this->outputs = [];
-
-        // input
-        $numInputNodes = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->SessionGetInputCount)($this->session, \FFI::addr($numInputNodes)));
-        for ($i = 0; $i < $numInputNodes->cdata; $i++) {
-            $namePtr = $this->ffi->new('char*');
-            $this->checkStatus(($this->api->SessionGetInputName)($this->session, $i, $allocator, \FFI::addr($namePtr)));
-            // freed in nodeInfo
-            $typeinfo = $this->ffi->new('OrtTypeInfo*');
-            $this->checkStatus(($this->api->SessionGetInputTypeInfo)($this->session, $i, \FFI::addr($typeinfo)));
-            $this->inputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
-            $this->allocatorFree($namePtr);
-        }
-
-        // output
-        $numOutputNodes = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->SessionGetOutputCount)($this->session, \FFI::addr($numOutputNodes)));
-        for ($i = 0; $i < $numOutputNodes->cdata; $i++) {
-            $namePtr = $this->ffi->new('char*');
-            $this->checkStatus(($this->api->SessionGetOutputName)($this->session, $i, $allocator, \FFI::addr($namePtr)));
-            // freed in nodeInfo
-            $typeinfo = $this->ffi->new('OrtTypeInfo*');
-            $this->checkStatus(($this->api->SessionGetOutputTypeInfo)($this->session, $i, \FFI::addr($typeinfo)));
-            $this->outputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
-            $this->allocatorFree($namePtr);
-        }
+        $this->inputs = $this->loadInputs();
+        $this->outputs = $this->loadOutputs();
 
         ($this->api->ReleaseSessionOptions)($sessionOptions);
     }
@@ -272,6 +246,40 @@ class InferenceSession
         }
         ($this->api->ReleaseAvailableProviders)($outPtr, $length);
         return $providers;
+    }
+
+    private function loadInputs()
+    {
+        $inputs = [];
+        $numInputNodes = $this->ffi->new('size_t');
+        $this->checkStatus(($this->api->SessionGetInputCount)($this->session, \FFI::addr($numInputNodes)));
+        for ($i = 0; $i < $numInputNodes->cdata; $i++) {
+            $namePtr = $this->ffi->new('char*');
+            $this->checkStatus(($this->api->SessionGetInputName)($this->session, $i, $this->allocator, \FFI::addr($namePtr)));
+            // freed in nodeInfo
+            $typeinfo = $this->ffi->new('OrtTypeInfo*');
+            $this->checkStatus(($this->api->SessionGetInputTypeInfo)($this->session, $i, \FFI::addr($typeinfo)));
+            $inputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
+            $this->allocatorFree($namePtr);
+        }
+        return $inputs;
+    }
+
+    private function loadOutputs()
+    {
+        $outputs = [];
+        $numOutputNodes = $this->ffi->new('size_t');
+        $this->checkStatus(($this->api->SessionGetOutputCount)($this->session, \FFI::addr($numOutputNodes)));
+        for ($i = 0; $i < $numOutputNodes->cdata; $i++) {
+            $namePtr = $this->ffi->new('char*');
+            $this->checkStatus(($this->api->SessionGetOutputName)($this->session, $i, $this->allocator, \FFI::addr($namePtr)));
+            // freed in nodeInfo
+            $typeinfo = $this->ffi->new('OrtTypeInfo*');
+            $this->checkStatus(($this->api->SessionGetOutputTypeInfo)($this->session, $i, \FFI::addr($typeinfo)));
+            $outputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
+            $this->allocatorFree($namePtr);
+        }
+        return $outputs;
     }
 
     private function createInputTensor($inputFeed, &$refs)
