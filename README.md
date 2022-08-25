@@ -43,6 +43,13 @@ Get metadata
 $model->metadata();
 ```
 
+Load a model from a stream [unreleased]
+
+```php
+$stream = fopen('model.onnx', 'rb');
+$model = new OnnxRuntime\Model($stream);
+```
+
 Get specific outputs
 
 ```php

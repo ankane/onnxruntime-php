@@ -50,6 +50,14 @@ final class ModelTest extends TestCase
         $this->assertEquals([[false, false], [true, false]], $output['output:0']);
     }
 
+    public function testStream()
+    {
+        $stream = fopen('tests/support/model.onnx', 'rb');
+        $model = new OnnxRuntime\Model($stream);
+        $expected = [['name' => 'x', 'type' => 'tensor(float)', 'shape' => [3, 4, 5]]];
+        $this->assertEquals($expected, $model->inputs());
+    }
+
     public function testLightGBM()
     {
         $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');

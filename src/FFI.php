@@ -172,7 +172,7 @@ class FFI
                     OrtStatus*(* EnableTelemetryEvents)(const OrtEnv* env);
                     OrtStatus*(* DisableTelemetryEvents)(const OrtEnv* env);
                     OrtStatus*(* CreateSession)(const OrtEnv* env, const char* model_path, const OrtSessionOptions* options, OrtSession** out);
-                    OrtStatus*(* CreateSessionFromArray)();
+                    OrtStatus*(* CreateSessionFromArray)(const OrtEnv* env, const void* model_data, size_t model_data_length, const OrtSessionOptions* options, OrtSession** out);
                     OrtStatus*(* Run)(OrtSession* session, const OrtRunOptions* run_options, const char* const* input_names, const OrtValue* const* inputs, size_t input_len, const char* const* output_names, size_t output_names_len, OrtValue** outputs);
                     OrtStatus*(* CreateSessionOptions)(OrtSessionOptions** options);
                     OrtStatus*(* SetOptimizedModelFilePath)(OrtSessionOptions* options, const char* optimized_model_filepath);
