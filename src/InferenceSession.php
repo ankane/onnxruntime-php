@@ -661,7 +661,17 @@ class InferenceSession
     private function ortString($str)
     {
         if (PHP_OS_FAMILY == 'Windows') {
-            throw new Exception('Not supported yet');
+            $libc = FFI::libc();
+            $max = strlen($str) + 1; // for null byte
+            // wchar_t not supported
+            // use char instead of casting later
+            // since FFI::cast only references data
+            $dest = $libc->new('char[' . ($max * 2) . ']');
+            $ret = $libc->mbstowcs($dest, $str, $max);
+            if ($ret != strlen($str)) {
+                throw new Exception('Expected mbstowcs to return ' . strlen($str) . ", got $ret");
+            }
+            return $dest;
         } else {
             return $str;
         }

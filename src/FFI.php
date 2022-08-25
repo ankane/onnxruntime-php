@@ -339,4 +339,19 @@ class FFI
     {
         return (self::instance()->OrtGetApiBase()[0]->GetVersionString)();
     }
+
+    private static $libc;
+
+    // for Windows
+    public static function libc()
+    {
+        if (!isset(self::$libc)) {
+            self::$libc = \FFI::cdef(
+                'size_t mbstowcs(void *wcstr, const char *mbstr, size_t count);',
+                'msvcrt.dll'
+            );
+        }
+
+        return self::$libc;
+    }
 }
