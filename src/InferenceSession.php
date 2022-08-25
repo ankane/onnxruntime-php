@@ -83,22 +83,8 @@ class InferenceSession
             }
         }
 
-        // session
-        $this->session = $this->ffi->new('OrtSession*');
-
-        if (is_resource($path) && get_resource_type($path) == 'stream') {
-            $contents = stream_get_contents($path);
-            $this->checkStatus(($this->api->CreateSessionFromArray)(self::env(), $contents, strlen($contents), $sessionOptions, \FFI::addr($this->session)));
-        } else {
-            $this->checkStatus(($this->api->CreateSession)(self::env(), $this->ortString($path), $sessionOptions, \FFI::addr($this->session)));
-        }
-
-        // input info
-        // don't free allocator
-        $allocator = $this->ffi->new('OrtAllocator*');
-        $this->checkStatus(($this->api->GetAllocatorWithDefaultOptions)(\FFI::addr($allocator)));
-        $this->allocator = $allocator;
-
+        $this->session = $this->loadSession($path, $sessionOptions);
+        $this->allocator = $this->loadAllocator();
         $this->inputs = $this->loadInputs();
         $this->outputs = $this->loadOutputs();
 
@@ -246,6 +232,25 @@ class InferenceSession
         }
         ($this->api->ReleaseAvailableProviders)($outPtr, $length);
         return $providers;
+    }
+
+    private function loadSession($path, $sessionOptions)
+    {
+        $session = $this->ffi->new('OrtSession*');
+        if (is_resource($path) && get_resource_type($path) == 'stream') {
+            $contents = stream_get_contents($path);
+            $this->checkStatus(($this->api->CreateSessionFromArray)(self::env(), $contents, strlen($contents), $sessionOptions, \FFI::addr($session)));
+        } else {
+            $this->checkStatus(($this->api->CreateSession)(self::env(), $this->ortString($path), $sessionOptions, \FFI::addr($session)));
+        }
+        return $session;
+    }
+
+    private function loadAllocator()
+    {
+        $allocator = $this->ffi->new('OrtAllocator*');
+        $this->checkStatus(($this->api->GetAllocatorWithDefaultOptions)(\FFI::addr($allocator)));
+        return $allocator;
     }
 
     private function loadInputs()
