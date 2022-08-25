@@ -686,7 +686,7 @@ class InferenceSession
     private static function env()
     {
         // TODO use mutex for thread-safety
-        // TODO memomize
+        // TODO memoize
 
         $env = FFI::instance()->new('OrtEnv*');
         (self::api()->CreateEnv)(3, 'Default', \FFI::addr($env));
