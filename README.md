@@ -43,7 +43,7 @@ Get metadata
 $model->metadata();
 ```
 
-Load a model from a stream [unreleased]
+Load a model from a stream
 
 ```php
 $stream = fopen('model.onnx', 'rb');
