@@ -450,20 +450,7 @@ class InferenceSession
 
             ($this->api->ReleaseTensorTypeAndShapeInfo)($typeinfo);
 
-            $castTypes = [
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'int32_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32_t',
-                $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64_t'
-            ];
-
+            $castTypes = $this->castTypes();
             if (isset($castTypes[$type])) {
                 $arr = \FFI::cast($castTypes[$type] . "[$outputTensorSize]", $tensorData);
             } elseif ($type == $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING) {
@@ -600,6 +587,23 @@ class InferenceSession
         } else {
             $this->unsupportedType('ONNX', $onnxType->cdata);
         }
+    }
+
+    private function castTypes()
+    {
+        return [
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'int32_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32_t',
+            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64_t'
+        ];
     }
 
     private function elementDataTypes()
