@@ -343,15 +343,11 @@ class InferenceSession
             } else {
                 $flatInputSize = array_product($shape);
 
-                if ($inp['type'] == 'tensor(bool)') {
-                    $inputTensorValues = $this->ffi->new("bool[$flatInputSize]");
-                    $typeEnum = $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL;
-                } elseif ($inp['type'] == 'tensor(uint8)') {
-                    $inputTensorValues = $this->ffi->new("uint8_t[$flatInputSize]");
-                    $typeEnum = $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8;
-                } elseif ($inp['type'] == 'tensor(float)') {
-                    $inputTensorValues = $this->ffi->new("float[$flatInputSize]");
-                    $typeEnum = $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT;
+                $inputTypes = array_flip(array_map(fn ($v) => "tensor($v)", $this->elementDataTypes()));
+                if (isset($inputTypes[$inp['type']])) {
+                    $typeEnum = $inputTypes[$inp['type']];
+                    $castType = $this->castTypes()[$typeEnum];
+                    $inputTensorValues = $this->ffi->new("{$castType}[$flatInputSize]");
                 } else {
                     $this->unsupportedType('input', $inp['type']);
                 }
