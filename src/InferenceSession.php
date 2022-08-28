@@ -91,6 +91,11 @@ class InferenceSession
         ($this->api->ReleaseSessionOptions)($sessionOptions);
     }
 
+    public function __destruct()
+    {
+        ($this->api->ReleaseSession)($this->session);
+    }
+
     public function run($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
     {
         // pointer references
