@@ -1,3 +1,7 @@
+## 0.1.2 (unreleased)
+
+- Updated ONNX Runtime to 1.13.1
+
 ## 0.1.1 (2022-08-28)
 
 - Added support for loading from a stream
