@@ -14,6 +14,12 @@ Run:
 composer require ankane/onnxruntime
 ```
 
+And download the shared library:
+
+```sh
+composer exec -- php -r "require 'vendor/autoload.php'; OnnxRuntime\Vendor::check(true);"
+```
+
 ## Getting Started
 
 Load a model and make predictions
