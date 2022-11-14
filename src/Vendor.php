@@ -39,7 +39,7 @@ class Vendor
         ]
     ];
 
-    public static function check($event)
+    public static function check($event = null)
     {
         $dest = self::defaultLib();
         if (file_exists($dest)) {
