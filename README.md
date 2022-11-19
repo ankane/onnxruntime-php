@@ -17,7 +17,7 @@ composer require ankane/onnxruntime
 And download the shared library:
 
 ```sh
-composer exec -- php -r "require 'vendor/autoload.php'; OnnxRuntime\Vendor::check(true);"
+composer exec -- php -r "require 'vendor/autoload.php'; OnnxRuntime\Vendor::check();"
 ```
 
 ## Getting Started
