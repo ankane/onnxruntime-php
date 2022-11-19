@@ -1,3 +1,7 @@
+## 0.1.3 (unreleased)
+
+- Fixed parse error with PHP < 8.1
+
 ## 0.1.2 (2022-10-30)
 
 - Updated ONNX Runtime to 1.13.1

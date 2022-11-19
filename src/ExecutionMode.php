@@ -2,8 +2,9 @@
 
 namespace OnnxRuntime;
 
-enum ExecutionMode: int
+// TODO use enum when PHP 8.0 reaches EOL
+class ExecutionMode
 {
-    case Sequential = 0;
-    case Parallel = 1;
+    public const Sequential = 0;
+    public const Parallel = 1;
 }
