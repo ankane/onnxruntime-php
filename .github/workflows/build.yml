@@ -8,10 +8,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - if: ${{ startsWith(matrix.os, 'windows') }}
-      run: |
-        (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini
-        (Get-Content C:\tools\php\php.ini) -replace ';ffi.enable=preload', 'ffi.enable=preload' | Out-File -encoding ASCII C:\tools\php\php.ini
-    - run: composer install
-    - run: composer test
+      - uses: actions/checkout@v3
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: |
+          (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini
+          (Get-Content C:\tools\php\php.ini) -replace ';ffi.enable=preload', 'ffi.enable=preload' | Out-File -encoding ASCII C:\tools\php\php.ini
+      - run: composer install
+      - run: composer test
