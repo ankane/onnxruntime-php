@@ -1,4 +1,4 @@
-## 0.1.4 (unreleased)
+## 0.1.4 (2023-02-11)
 
 - Updated ONNX Runtime to 1.14.0
 - Fixed warnings with PHP 8.2
