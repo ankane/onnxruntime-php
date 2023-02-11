@@ -4,6 +4,9 @@ namespace OnnxRuntime;
 
 class Model
 {
+    // TODO make private in 0.2.0
+    public $session;
+
     public function __construct($path, ...$sessionOptions)
     {
         $this->session = new InferenceSession($path, ...$sessionOptions);

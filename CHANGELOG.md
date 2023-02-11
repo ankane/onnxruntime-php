@@ -1,6 +1,7 @@
 ## 0.1.4 (unreleased)
 
 - Updated ONNX Runtime to 1.14.0
+- Fixed warnings with PHP 8.2
 
 ## 0.1.3 (2022-11-19)
 
