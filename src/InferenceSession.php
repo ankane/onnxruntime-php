@@ -28,7 +28,8 @@ class InferenceSession
         $logid = null,
         $optimizedModelFilepath = null,
         $profileFilePrefix = null,
-        $sessionConfigEntries = null
+        $sessionConfigEntries = null,
+        $providers = []
     ) {
         $this->ffi = FFI::instance();
         $this->api = self::api();
@@ -88,6 +89,23 @@ class InferenceSession
         if (!is_null($sessionConfigEntries)) {
             foreach ($sessionConfigEntries as $k => $v) {
                 $this->checkStatus(($this->api->AddSessionConfigEntry)($sessionOptions, $k, $v));
+            }
+        }
+        foreach ($providers as $provider) {
+            if (!in_array($provider, $this->providers())) {
+                trigger_error('Provider not available: ' . $provider, E_USER_WARNING);
+                continue;
+            }
+
+            if ($provider == 'CUDAExecutionProvider') {
+                $cudaOptions = $this->ffi->new('OrtCUDAProviderOptionsV2*');
+                $this->checkStatus(($this->api->CreateCUDAProviderOptions)(\FFI::addr($cudaOptions)));
+                $this->checkStatus(($this->api->SessionOptionsAppendExecutionProvider_CUDA_V2)($sessionOptions, $cudaOptions));
+                ($this->api->ReleaseCUDAProviderOptions)($cudaOptions);
+            } elseif ($provider == 'CPUExecutionProvider') {
+                break;
+            } else {
+                throw new \InvalidArgumentException('Provider not supported: ' . $provider);
             }
         }
 
