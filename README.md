@@ -116,6 +116,20 @@ The Python example models are included as well.
 OnnxRuntime\Datasets::example('sigmoid.onnx');
 ```
 
+## GPU Support [unreleased]
+
+To enable GPU support on Linux and Windows, download the appropriate [GPU release](https://github.com/microsoft/onnxruntime/releases) and set:
+
+```php
+OnnxRuntime\FFI::$lib = 'path/to/lib/libonnxruntime.so'; // onnxruntime.dll for Windows
+```
+
+and use:
+
+```php
+$model = new OnnxRuntime\Model('model.onnx', providers: ['CUDAExecutionProvider']);
+```
+
 ## History
 
 View the [changelog](https://github.com/ankane/onnxruntime-php/blob/master/CHANGELOG.md)
