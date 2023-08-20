@@ -334,8 +334,8 @@ class FFI
                     void(* PrepackedWeightsContainer)(OrtPrepackedWeightsContainer* input);
                     OrtStatus*(* CreateSessionWithPrepackedWeightsContainer)();
                     OrtStatus*(* CreateSessionFromArrayWithPrepackedWeightsContainer)();
-                    OrtStatus*(* SessionOptionsAppendExecutionProvider_TensorRT_V2)(OrtSessionOptions* options, const OrtTensorRTProviderOptionsV2* tensorrt_options);
-                    OrtStatus*(* CreateTensorRTProviderOptions)(OrtTensorRTProviderOptionsV2** out);
+                    OrtStatus*(* SessionOptionsAppendExecutionProvider_TensorRT_V2)();
+                    OrtStatus*(* CreateTensorRTProviderOptions)();
                     OrtStatus*(* UpdateTensorRTProviderOptions)();
                     OrtStatus*(* GetTensorRTProviderOptionsAsString)();
                     void(* ReleaseTensorRTProviderOptions)(OrtTensorRTProviderOptionsV2* input);

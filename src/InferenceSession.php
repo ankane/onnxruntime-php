@@ -104,11 +104,6 @@ class InferenceSession
                 ($this->api->ReleaseCUDAProviderOptions)($cudaOptions);
             } elseif ($provider == 'CPUExecutionProvider') {
                 break;
-            } elseif ($provider == 'TensorrtExecutionProvider') {
-                $tensorRtOptions = $this->ffi->new('OrtTensorRTProviderOptionsV2*');
-                $this->checkStatus(($this->api->CreateTensorRTProviderOptions)(\FFI::addr($tensorRtOptions)));
-                $this->checkStatus(($this->api->SessionOptionsAppendExecutionProvider_TensorRT_V2)($sessionOptions, $tensorRtOptions));
-                ($this->api->ReleaseTensorRTProviderOptions)($tensorRtOptions);
             } else {
                 throw new \InvalidArgumentException('Provider not supported: ' . $provider);
             }
