@@ -1,5 +1,6 @@
 ## 0.1.6 (unreleased)
 
+- Updated ONNX Runtime to 1.16.0
 - Added GPU support
 
 ## 0.1.5 (2023-05-24)
