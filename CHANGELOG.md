@@ -1,3 +1,7 @@
+## 0.1.7 (unreleased)
+
+- Fixed memory leak
+
 ## 0.1.6 (2023-09-20)
 
 - Updated ONNX Runtime to 1.16.0
