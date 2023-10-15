@@ -1,4 +1,4 @@
-## 0.1.7 (unreleased)
+## 0.1.7 (2023-10-15)
 
 - Fixed memory leak
 
