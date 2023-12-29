@@ -8,7 +8,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
           (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini
