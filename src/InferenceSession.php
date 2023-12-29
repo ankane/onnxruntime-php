@@ -475,7 +475,7 @@ class InferenceSession
 
                 $castTypes = $this->castTypes();
                 if (isset($castTypes[$type])) {
-                    $arr = \FFI::cast($castTypes[$type] . "[$outputTensorSize]", $tensorData);
+                    $arr = $this->ffi->cast($castTypes[$type] . "[$outputTensorSize]", $tensorData);
                 } elseif ($type == $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING) {
                     $arr = $this->createStringsFromOnnxValue($outPtr, $outputTensorSize);
                 } else {

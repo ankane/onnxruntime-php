@@ -1,3 +1,7 @@
+## 0.1.8 (unreleased)
+
+- Fixed deprecation warning with PHP 8.3.1
+
 ## 0.1.7 (2023-10-15)
 
 - Fixed memory leak
