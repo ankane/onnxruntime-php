@@ -1,4 +1,4 @@
-## 0.1.8 (unreleased)
+## 0.1.8 (2024-01-10)
 
 - Fixed deprecation warning with PHP 8.3.1
 
