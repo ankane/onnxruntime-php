@@ -4,13 +4,12 @@ namespace OnnxRuntime;
 
 class InferenceSession
 {
-    // TODO make private in 0.2.0
-    public $ffi;
-    public $api;
-    public $session;
-    public $allocator;
-    public $inputs;
-    public $outputs;
+    private $ffi;
+    private $api;
+    private $session;
+    private $allocator;
+    private $inputs;
+    private $outputs;
 
     public function __construct(
         $path,

@@ -4,8 +4,7 @@ namespace OnnxRuntime;
 
 class Model
 {
-    // TODO make private in 0.2.0
-    public $session;
+    private $session;
 
     public function __construct($path, ...$sessionOptions)
     {
