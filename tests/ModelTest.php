@@ -240,10 +240,9 @@ final class ModelTest extends TestCase
 
     public function testProvidersCuda()
     {
-        $this->expectException(\PHPUnit\Framework\Error\Warning::class);
-        $this->expectExceptionMessage('Provider not available: CUDAExecutionProvider');
-
+        // Provider not available: CUDAExecutionProvider
         $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx', providers: ['CUDAExecutionProvider', 'CPUExecutionProvider']);
+        $this->assertNotContains('CUDAExecutionProvider', $sess->providers());
     }
 
     public function testProfiling()
