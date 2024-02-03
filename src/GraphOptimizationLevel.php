@@ -2,11 +2,10 @@
 
 namespace OnnxRuntime;
 
-// TODO use enum when PHP 8.0 reaches EOL
-class GraphOptimizationLevel
+enum GraphOptimizationLevel: int
 {
-    public const None = 0;
-    public const Basic = 1;
-    public const Extended = 2;
-    public const All = 99;
+    case None = 0;
+    case Basic = 1;
+    case Extended = 2;
+    case All = 99;
 }

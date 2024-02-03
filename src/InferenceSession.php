@@ -52,7 +52,7 @@ class InferenceSession
             $this->checkStatus(($this->api->DisableProfiling)($sessionOptions));
         }
         if (!is_null($executionMode)) {
-            $this->checkStatus(($this->api->SetSessionExecutionMode)($sessionOptions, $executionMode));
+            $this->checkStatus(($this->api->SetSessionExecutionMode)($sessionOptions, $executionMode->value));
         }
         if (!is_null($freeDimensionOverridesByDenotation)) {
             foreach ($freeDimensionOverridesByDenotation as $k => $v) {
@@ -65,7 +65,7 @@ class InferenceSession
             }
         }
         if (!is_null($graphOptimizationLevel)) {
-            $this->checkStatus(($this->api->SetSessionGraphOptimizationLevel)($sessionOptions, $graphOptimizationLevel));
+            $this->checkStatus(($this->api->SetSessionGraphOptimizationLevel)($sessionOptions, $graphOptimizationLevel->value));
         }
         if (!is_null($interOpNumThreads)) {
             $this->checkStatus(($this->api->SetInterOpNumThreads)($sessionOptions, $interOpNumThreads));

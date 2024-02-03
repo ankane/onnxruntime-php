@@ -1,6 +1,7 @@
 ## 0.2.0 (unreleased)
 
 - Updated ONNX Runtime to 1.17.0
+- Changed `ExecutionMode` and `GraphOptimizationLevel` to enums
 - Dropped support for PHP < 8.1
 
 ## 0.1.8 (2024-01-10)
