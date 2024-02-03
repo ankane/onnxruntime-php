@@ -212,7 +212,7 @@ final class ModelTest extends TestCase
     public function testInvalidOutputName()
     {
         $this->expectException(OnnxRuntime\Exception::class);
-        $this->expectExceptionMessage('Invalid Output Name:bad');
+        $this->expectExceptionMessage('Invalid output name: bad');
 
         $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
         $x = [[5.8, 2.8]];

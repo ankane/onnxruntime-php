@@ -1,3 +1,7 @@
+## 0.2.0 (unreleased)
+
+- Updated ONNX Runtime to 1.17.0
+
 ## 0.1.8 (2024-01-10)
 
 - Fixed deprecation warning with PHP 8.3.1
