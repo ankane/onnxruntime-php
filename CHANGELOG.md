@@ -1,4 +1,4 @@
-## 0.2.0 (unreleased)
+## 0.2.0 (2024-02-07)
 
 - Updated ONNX Runtime to 1.17.0
 - Changed `ExecutionMode` and `GraphOptimizationLevel` to enums
