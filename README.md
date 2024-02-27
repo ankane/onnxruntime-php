@@ -4,7 +4,7 @@
 
 Check out [an example](https://ankane.org/tensorflow-php)
 
-[![Build Status](https://github.com/ankane/onnxruntime-php/workflows/build/badge.svg?branch=master)](https://github.com/ankane/onnxruntime-php/actions)
+[![Build Status](https://github.com/ankane/onnxruntime-php/actions/workflows/build.yml/badge.svg)](https://github.com/ankane/onnxruntime-php/actions)
 
 ## Installation
 
