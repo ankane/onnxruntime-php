@@ -332,7 +332,7 @@ class InferenceSession
 
         $idx = 0;
 
-        /** @var Tensor $input */
+        /** @var TensorInterface $input */
         foreach ($inputFeed as $inputName => $input) {
             // TODO support more types
             $inp = null;
@@ -397,7 +397,7 @@ class InferenceSession
         return $inputTensor;
     }
 
-    private function fillStringTensorValues(Tensor $input, $ptr, &$refs): void
+    private function fillStringTensorValues(TensorInterface $input, $ptr, &$refs): void
     {
         foreach ($input->buffer() as $i => $v) {
             $strPtr = $this->cstring($v);
