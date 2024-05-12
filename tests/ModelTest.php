@@ -1,5 +1,7 @@
 <?php
 
+use OnnxRuntime\DType;
+use OnnxRuntime\Tensor;
 use PHPUnit\Framework\TestCase;
 
 final class ModelTest extends TestCase
@@ -14,40 +16,40 @@ final class ModelTest extends TestCase
         $expected = [['name' => 'y', 'type' => 'tensor(float)', 'shape' => [3, 4, 5]]];
         $this->assertEquals($expected, $model->outputs());
 
-        $x = [[[0.5488135,  0.71518934, 0.60276335, 0.5448832,  0.4236548 ],
-               [0.6458941,  0.4375872,  0.891773,   0.96366274, 0.3834415 ],
-               [0.79172504, 0.5288949,  0.56804454, 0.92559665, 0.07103606],
-               [0.0871293,  0.0202184,  0.83261985, 0.77815676, 0.87001216]],
+        $x = [[[0.5488135, 0.71518934, 0.60276335, 0.5448832, 0.4236548],
+            [0.6458941, 0.4375872, 0.891773, 0.96366274, 0.3834415],
+            [0.79172504, 0.5288949, 0.56804454, 0.92559665, 0.07103606],
+            [0.0871293, 0.0202184, 0.83261985, 0.77815676, 0.87001216]],
 
-              [[0.9786183,  0.7991586,  0.46147937, 0.7805292,  0.11827443],
-               [0.639921,   0.14335328, 0.9446689,  0.5218483,  0.41466194],
-               [0.2645556,  0.7742337,  0.45615032, 0.56843394, 0.0187898 ],
-               [0.6176355,  0.6120957,  0.616934,   0.94374806, 0.6818203 ]],
+            [[0.9786183, 0.7991586, 0.46147937, 0.7805292, 0.11827443],
+                [0.639921, 0.14335328, 0.9446689, 0.5218483, 0.41466194],
+                [0.2645556, 0.7742337, 0.45615032, 0.56843394, 0.0187898],
+                [0.6176355, 0.6120957, 0.616934, 0.94374806, 0.6818203]],
 
-              [[0.3595079,  0.43703195, 0.6976312,  0.06022547, 0.6667667 ],
-               [0.67063785, 0.21038257, 0.12892629, 0.31542835, 0.36371076],
-               [0.57019675, 0.43860152, 0.9883738,  0.10204481, 0.20887676],
-               [0.16130951, 0.6531083,  0.2532916,  0.46631077, 0.2444256 ]]];
+            [[0.3595079, 0.43703195, 0.6976312, 0.06022547, 0.6667667],
+                [0.67063785, 0.21038257, 0.12892629, 0.31542835, 0.36371076],
+                [0.57019675, 0.43860152, 0.9883738, 0.10204481, 0.20887676],
+                [0.16130951, 0.6531083, 0.2532916, 0.46631077, 0.2444256]]];
 
-        $output = $model->predict(['x' => $x]);
-        $this->assertEqualsWithDelta([0.6338603, 0.6715468, 0.6462883, 0.6329476, 0.6043575], $output['y'][0][0], 0.00001);
+        $output = $model->predict(['x' => Tensor::fromArray($x, DType::Float32)]);
+        $this->assertEqualsWithDelta([0.6338603, 0.6715468, 0.6462883, 0.6329476, 0.6043575], $output['y'][0][0]->toArray(), 0.00001);
     }
 
     public function testInputString()
     {
         $model = new OnnxRuntime\Model('tests/support/identity_string.onnx');
-        $x = [['one', 'two'], ['three', 'four']];
+        $x = Tensor::fromArray([['one', 'two'], ['three', 'four']], DType::String);
         $output = $model->predict(['input:0' => $x]);
-        $this->assertEquals($x, $output['output:0']);
+        $this->assertEquals($x->toArray(), $output['output:0']->toArray());
     }
 
     public function testInputBool()
     {
         $model = new OnnxRuntime\Model('tests/support/logical_and.onnx');
-        $x = [[false, false], [true, true]];
-        $x2 = [[true, false], [true, false]];
+        $x = Tensor::fromArray([[false, false], [true, true]], DType::Bool);
+        $x2 = Tensor::fromArray([[true, false], [true, false]], DType::Bool);
         $output = $model->predict(['input:0' => $x, 'input1:0' => $x2]);
-        $this->assertEquals([[false, false], [true, false]], $output['output:0']);
+        $this->assertEquals([[false, false], [true, false]], $output['output:0']->toArray());
     }
 
     public function testStream()
@@ -68,23 +70,26 @@ final class ModelTest extends TestCase
         $expected = [['name' => 'label', 'type' => 'tensor(int64)', 'shape' => [1]], ['name' => 'probabilities', 'type' => 'seq(map(int64,tensor(float)))', 'shape' => []]];
         $this->assertEquals($expected, $model->outputs());
 
-        $x = [[5.8, 2.8]];
+        $x = Tensor::fromArray([[5.8, 2.8]], DType::Float32);
 
         $output = $model->predict(['input' => $x]);
-        $this->assertEquals([1], $output['label']);
+        $this->assertEquals([1], $output['label']->toArray());
         $probabilities = $output['probabilities'][0];
         $this->assertEquals([0, 1, 2], array_keys($probabilities));
         $this->assertEqualsWithDelta([0.2593829035758972, 0.409047931432724, 0.3315691649913788], array_values($probabilities), 0.00001);
 
-        $x2 = [[5.8, 2.8],
-               [6.0, 2.2],
-               [5.5, 4.2],
-               [7.3, 2.9],
-               [5.0, 3.4]];
+        $x2 = Tensor::fromArray(
+            [
+                [5.8, 2.8],
+                [6.0, 2.2],
+                [5.5, 4.2],
+                [7.3, 2.9],
+                [5.0, 3.4]
+            ], DType::Float32);
 
         $labels = [];
         foreach ($x2 as $xi) {
-            $output = $model->predict(['input' => [$xi]]);
+            $output = $model->predict(['input' => $xi->reshape([1, ...$xi->shape()])]);
             $labels[] = $output['label'][0];
         }
         $this->assertEquals([1, 1, 0, 2, 0], $labels);
@@ -103,10 +108,10 @@ final class ModelTest extends TestCase
         ];
         $this->assertEquals($expected, $model->outputs());
 
-        $x = [[5.8, 2.8, 5.1, 2.4]];
+        $x = Tensor::fromArray([[5.8, 2.8, 5.1, 2.4]], DType::Float32);
 
         $output = $model->predict(['float_input' => $x]);
-        $this->assertEquals([2], $output['output_label']);
+        $this->assertEquals([2], $output['output_label']->toArray());
         $probabilities = $output['output_probability'][0];
         $this->assertEquals([0, 1, 2], array_keys($probabilities));
         $this->assertEqualsWithDelta([0.0, 0.0, 1.0000001192092896], array_values($probabilities), 0.00001);
@@ -115,7 +120,7 @@ final class ModelTest extends TestCase
     public function testOutputNames()
     {
         $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
-        $output = $model->predict(['input' => [[5.8, 2.8]]], outputNames: ['label']);
+        $output = $model->predict(['input' => Tensor::fromArray([[5.8, 2.8]], DType::Float32)], outputNames: ['label']);
         $this->assertEquals(['label'], array_keys($output));
     }
 
@@ -134,7 +139,7 @@ final class ModelTest extends TestCase
             logid: 'test',
             optimizedModelFilepath: $optimizedPath
         );
-        $x = [[5.8, 2.8]];
+        $x = Tensor::fromArray([[5.8, 2.8]], DType::Float32);
         $model->predict(['input' => $x]);
 
         $this->assertStringContainsString('onnx', file_get_contents($optimizedPath));
@@ -168,7 +173,7 @@ final class ModelTest extends TestCase
     public function testRunOptions()
     {
         $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
-        $x = [[5.8, 2.8]];
+        $x = Tensor::fromArray([[5.8, 2.8]], DType::Float32);
         $model->predict(['input' => $x], logSeverityLevel: 4, logVerbosityLevel: 4, logid: 'test', terminate: false);
         $this->assertTrue(true);
     }
@@ -179,7 +184,7 @@ final class ModelTest extends TestCase
         $this->expectExceptionMessage('Invalid rank for input: x');
 
         $model = new OnnxRuntime\Model('tests/support/model.onnx');
-        $model->predict(['x' => [1]]);
+        $model->predict(['x' => Tensor::fromArray([1], DType::Float32)]);
     }
 
     public function testInvalidDimensions()
@@ -188,7 +193,7 @@ final class ModelTest extends TestCase
         $this->expectExceptionMessage('Got invalid dimensions for input: x');
 
         $model = new OnnxRuntime\Model('tests/support/model.onnx');
-        $model->predict(['x' => [[[1]]]]);
+        $model->predict(['x' => Tensor::fromArray([[[1]]], DType::Float32)]);
     }
 
     public function testMissingInput()
@@ -206,7 +211,7 @@ final class ModelTest extends TestCase
         $this->expectExceptionMessage('Unknown input: y');
 
         $model = new OnnxRuntime\Model('tests/support/model.onnx');
-        $model->predict(['x' => [1], 'y' => [1]]);
+        $model->predict(['x' => Tensor::fromArray([1], DType::Float32), 'y' => Tensor::fromArray([1], DType::Float32)]);
     }
 
     public function testInvalidOutputName()
@@ -215,7 +220,7 @@ final class ModelTest extends TestCase
         $this->expectExceptionMessage('Invalid output name: bad');
 
         $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
-        $x = [[5.8, 2.8]];
+        $x = Tensor::fromArray([[5.8, 2.8]], DType::Float32);
         $model->predict(['input' => $x], outputNames: ['bad']);
     }
 
