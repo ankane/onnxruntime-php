@@ -514,7 +514,7 @@ class InferenceSession
                     $values = $this->createFromOnnxValue($mapValues);
                     return array_combine($keys, $values);
                 } else {
-                    $this->unsupported_type('element', $elemType);
+                    $this->unsupportedType('element', $elemType);
                 }
             } else {
                 $this->unsupportedType('ONNX', $outType->cdata);
