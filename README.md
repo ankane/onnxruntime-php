@@ -26,7 +26,8 @@ Load a model and make predictions
 
 ```php
 $model = new OnnxRuntime\Model('model.onnx');
-$model->predict(['x' => [1, 2, 3]]);
+$x = OnnxRuntime\Tensor::fromArray([1, 2, 3]]);
+$model->predict(['x' => $x);
 ```
 
 > Download pre-trained models from the [ONNX Model Zoo](https://github.com/onnx/models)
@@ -59,7 +60,8 @@ $model = new OnnxRuntime\Model($stream);
 Get specific outputs
 
 ```php
-$model->predict(['x' => [1, 2, 3]], outputNames: ['label']);
+$x = OnnxRuntime\Tensor::fromArray([1, 2, 3]);
+$model->predict(['x' => $x], outputNames: ['label']);
 ```
 
 ## Session Options
@@ -107,7 +109,8 @@ You can also use the Inference Session API, which follows the [Python API](https
 
 ```php
 $session = new OnnxRuntime\InferenceSession('model.onnx');
-$session->run(null, ['x' => [1, 2, 3]]);
+$x = OnnxRuntime\Tensor::fromArray([1, 2, 3]);
+$session->run(null, ['x' => $x]);
 ```
 
 The Python example models are included as well.
