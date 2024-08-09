@@ -14,10 +14,19 @@ Run:
 composer require ankane/onnxruntime
 ```
 
-And download the shared library:
+Add scripts to `composer.json` to download the shared library:
+
+```json
+    "scripts": {
+        "post-install-cmd": "OnnxRuntime\\Vendor::check",
+        "post-update-cmd": "OnnxRuntime\\Vendor::check"
+    }
+```
+
+And run:
 
 ```sh
-composer exec -- php -r "require 'vendor/autoload.php'; OnnxRuntime\Vendor::check();"
+composer install
 ```
 
 ## Getting Started
