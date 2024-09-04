@@ -101,6 +101,9 @@ class InferenceSession
                 $this->checkStatus(($this->api->CreateCUDAProviderOptions)(\FFI::addr($cudaOptions)));
                 $this->checkStatus(($this->api->SessionOptionsAppendExecutionProvider_CUDA_V2)($sessionOptions, $cudaOptions));
                 ($this->api->ReleaseCUDAProviderOptions)($cudaOptions);
+            } elseif ($provider == 'CoreMLExecutionProvider') {
+                $coremlFlags = 0;
+                $this->checkStatus($this->ffi->OrtSessionOptionsAppendExecutionProvider_CoreML($sessionOptions, $coremlFlags));
             } elseif ($provider == 'CPUExecutionProvider') {
                 break;
             } else {

@@ -1,6 +1,7 @@
 ## 0.2.2 (unreleased)
 
 - Updated ONNX Runtime to 1.19.2
+- Added support for CoreML
 
 ## 0.2.1 (2024-05-22)
 

@@ -11,6 +11,11 @@ class FFI
     public static function instance()
     {
         if (!isset(self::$instance)) {
+            $coreml = '';
+            if (PHP_OS_FAMILY == 'Darwin') {
+                $coreml = 'OrtStatus* OrtSessionOptionsAppendExecutionProvider_CoreML(OrtSessionOptions* options, uint32_t coreml_flags);';
+            }
+
             // https://github.com/microsoft/onnxruntime/blob/main/include/onnxruntime/core/session/onnxruntime_c_api.h
             // keep same order
             self::$instance = \FFI::cdef('
@@ -374,7 +379,7 @@ class FFI
                     OrtStatus*(* GetCUDAProviderOptionsAsString)();
                     void(* ReleaseCUDAProviderOptions)(OrtCUDAProviderOptionsV2* input);
                 };
-            ', self::$lib ?? Vendor::defaultLib());
+            ' . $coreml, self::$lib ?? Vendor::defaultLib());
         }
 
         return self::$instance;
