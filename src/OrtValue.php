@@ -8,16 +8,18 @@ class OrtValue
 
     private $ffi;
     private $api;
-    private $ptr;
     private $allocator;
+    private $ptr;
+    private $ref;
 
-    public function __construct($ptr)
+    public function __construct($ptr, &$ref = null)
     {
-        $this->ffi = FFI::instance();
+        $this->ffi = self::ffi();
         $this->api = self::api();
+        $this->allocator = $this->loadAllocator();
 
         $this->ptr = $ptr;
-        $this->allocator = $this->loadAllocator();
+        $this->ref = $ref;
     }
 
     public function __destruct()
@@ -25,9 +27,122 @@ class OrtValue
         ($this->api->ReleaseValue)($this->ptr);
     }
 
+    public static function ortvalueFromArray($input, $elementType)
+    {
+        $ffi = self::ffi();
+        $api = self::api();
+        $allocator = self::loadAllocator();
+
+        $typeEnum = array_search($elementType, self::elementDataTypes());
+        if (is_null($typeEnum)) {
+            self::unsupportedType('element', $elementType);
+        }
+
+        // TODO check shape of each row
+        $shape = [];
+        $s = $input;
+        while (is_array($s)) {
+            $shape[] = count($s);
+            $s = $s[0];
+        }
+        $shapeSize = count($shape);
+        $inputNodeDims = $ffi->new("int64_t[$shapeSize]");
+        for ($i = 0; $i < $shapeSize; $i++) {
+            $inputNodeDims[$i] = $shape[$i];
+        }
+
+        $ptr = $ffi->new('OrtValue*');
+        if ($elementType == 'string') {
+            $flatInputSize = array_product($shape);
+            $inputTensorValues = $ffi->new("char*[$flatInputSize]");
+            $i = 0;
+            $strRefs = [];
+            self::fillStringTensorValues($input, $inputTensorValues, $shape, $i, $strRefs);
+
+            self::checkStatus(($api->CreateTensorAsOrtValue)($allocator, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
+            self::checkStatus(($api->FillStringTensor)($ptr, $inputTensorValues, count($inputTensorValues)));
+        } else {
+            $flatInputSize = array_product($shape);
+            $castType = self::castTypes()[$typeEnum];
+            $inputTensorValues = $ffi->new("{$castType}[$flatInputSize]");
+            $i = 0;
+            self::fillTensorValues($input, $inputTensorValues, $shape, $i);
+
+            self::checkStatus(($api->CreateTensorWithDataAsOrtValue)(self::allocatorInfo(), $inputTensorValues, \FFI::sizeof($inputTensorValues), $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
+        }
+
+        return new OrtValue($ptr, $inputTensorValues);
+    }
+
+    private static function fillStringTensorValues($input, $ptr, $shape, &$i, &$refs)
+    {
+        $dim = array_shift($shape);
+
+        if (count($shape) == 0) {
+            for ($j = 0; $j < $dim; $j++) {
+                $strPtr = self::cstring($input[$j]);
+                $ptr[$i] = $strPtr;
+                $refs[] = $strPtr;
+                $i++;
+            }
+        } else {
+            for ($j = 0; $j < $dim; $j++) {
+                self::fillStringTensorValues($input[$j], $ptr, $shape, $i, $refs);
+            }
+        }
+    }
+
+    private static function fillTensorValues($input, $ptr, $shape, &$i)
+    {
+        $dim = array_shift($shape);
+
+        if (count($shape) == 0) {
+            for ($j = 0; $j < $dim; $j++) {
+                $ptr[$i] = $input[$j];
+                $i++;
+            }
+        } else {
+            for ($j = 0; $j < $dim; $j++) {
+                self::fillTensorValues($input[$j], $ptr, $shape, $i);
+            }
+        }
+    }
+
+    public function isTensor()
+    {
+        $outType = $this->ffi->new('ONNXType');
+        $this->checkStatus(($this->api->GetValueType)($this->ptr, \FFI::addr($outType)));
+        return $outType->cdata == $this->ffi->ONNX_TYPE_TENSOR;
+    }
+
+    // public function dataType()
+    // {
+
+    // }
+
+    // public function elementType()
+    // {
+
+    // }
+
+    // public function shape()
+    // {
+
+    // }
+
+    public function deviceName()
+    {
+        return 'cpu';
+    }
+
     public function toObject()
     {
         return $this->createFromOnnxValue($this->ptr);
+    }
+
+    public function toPtr()
+    {
+        return $this->ptr;
     }
 
     private function createFromOnnxValue($outPtr)
@@ -138,5 +253,17 @@ class OrtValue
             $result[] = \FFI::string($s + $start, $size);
         }
         return $result;
+    }
+
+    private static $allocatorInfo;
+
+    private static function allocatorInfo()
+    {
+        if (!isset(self::$allocatorInfo)) {
+            self::$allocatorInfo = FFI::instance()->new('OrtMemoryInfo*');
+            self::checkStatus((self::api()->CreateCpuMemoryInfo)(1, 0, \FFI::addr(self::$allocatorInfo)));
+        }
+
+        return self::$allocatorInfo;
     }
 }

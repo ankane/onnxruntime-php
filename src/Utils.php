@@ -13,12 +13,17 @@ trait Utils
         }
     }
 
+    private static function ffi()
+    {
+        return FFI::instance();
+    }
+
     private static function api()
     {
         return FFI::api();
     }
 
-    private function unsupportedType($name, $type)
+    private static function unsupportedType($name, $type)
     {
         throw new Exception("Unsupported $name type: $type");
     }
@@ -103,21 +108,58 @@ trait Utils
         return $arr;
     }
 
-    private function castTypes()
+    private static function castTypes()
     {
+        $ffi = self::ffi();
+
         return [
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'int32_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32_t',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64_t'
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'int32_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32_t',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64_t'
         ];
+    }
+
+    private static function elementDataTypes()
+    {
+        $ffi = self::ffi();
+
+        return [
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED => 'undefined',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'uint32',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING => 'string',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16 => 'float16',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64 => 'complex64',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128 => 'complex128',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16 => 'bfloat16'
+        ];
+    }
+
+    private static function cstring($str)
+    {
+        $bytes = strlen($str) + 1;
+        // TODO fix?
+        $ptr = self::ffi()->new("char[$bytes]", owned: false);
+        \FFI::memcpy($ptr, $str, $bytes - 1);
+        $ptr[$bytes - 1] = "\0";
+        return $ptr;
     }
 
     private static $defaultAllocator;
@@ -125,7 +167,7 @@ trait Utils
     private static function loadAllocator()
     {
         if (!isset(self::$defaultAllocator)) {
-            self::$defaultAllocator = FFI::instance()->new('OrtAllocator*');
+            self::$defaultAllocator = self::ffi()->new('OrtAllocator*');
             self::checkStatus((self::api()->GetAllocatorWithDefaultOptions)(\FFI::addr(self::$defaultAllocator)));
         }
 

@@ -32,7 +32,7 @@ class InferenceSession
         $sessionConfigEntries = null,
         $providers = []
     ) {
-        $this->ffi = FFI::instance();
+        $this->ffi = self::ffi();
         $this->api = self::api();
 
         // session options
@@ -131,7 +131,16 @@ class InferenceSession
         // pointer references
         $refs = [];
 
-        $inputTensor = $this->createInputTensor($inputFeed, $refs);
+        $inputFeedSize = count($inputFeed);
+        if ($inputFeedSize == 0) {
+            throw new Exception('No input');
+        }
+        $inputTensor = $this->ffi->new("OrtValue*[$inputFeedSize]");
+
+        $ortValues = $this->createInputTensor($inputFeed);
+        foreach ($ortValues as $i => $ortValue) {
+            $inputTensor[$i] = $ortValue->toPtr();
+        }
 
         $outputNames ??= array_map(fn ($v) => $v['name'], $this->outputs);
 
@@ -169,12 +178,6 @@ class InferenceSession
 
         // TODO use finally
         ($this->api->ReleaseRunOptions)($runOptions);
-        if ($inputTensor) {
-            for ($i = 0; $i < count($inputFeed); $i++) {
-                ($this->api->ReleaseValue)($inputTensor[$i]);
-            }
-        }
-        // output values released in createFromOnnxValue
 
         return $output;
     }
@@ -315,27 +318,9 @@ class InferenceSession
         return $outputs;
     }
 
-    private function createInputTensor($inputFeed, &$refs)
+    private function createInputTensor($inputFeed)
     {
-        $allocatorInfo = $this->ffi->new('OrtMemoryInfo*');
-        $this->checkStatus(($this->api->CreateCpuMemoryInfo)(1, 0, \FFI::addr($allocatorInfo)));
-        $inputFeedSize = count($inputFeed);
-        if ($inputFeedSize == 0) {
-            throw new Exception('No input');
-        }
-        $inputTensor = $this->ffi->new("OrtValue*[$inputFeedSize]");
-
-        $idx = 0;
-        foreach ($inputFeed as $inputName => $input) {
-            $shape = [];
-            $s = $input;
-            while (is_array($s)) {
-                $shape[] = count($s);
-                $s = $s[0];
-            }
-
-            // TODO check shape of each row
-
+        return array_map(function ($inputName, $input) {
             // TODO support more types
             $inp = null;
             foreach ($this->inputs as $i) {
@@ -348,82 +333,18 @@ class InferenceSession
                 throw new Exception("Unknown input: $inputName");
             }
 
-            $shapeSize = count($shape);
-            $inputNodeDims = $this->ffi->new("int64_t[$shapeSize]");
-            for ($i = 0; $i < $shapeSize; $i++) {
-                $inputNodeDims[$i] = $shape[$i];
-            }
-
             if ($inp['type'] == 'tensor(string)') {
-                $flatInputSize = array_product($shape);
-                $inputTensorValues = $this->ffi->new("char*[$flatInputSize]");
-                $i = 0;
-                $this->fillStringTensorValues($input, $inputTensorValues, $shape, $i, $refs);
-
-                $typeEnum = $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING;
-                $this->checkStatus(($this->api->CreateTensorAsOrtValue)($this->allocator, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($inputTensor[$idx])));
-                $this->checkStatus(($this->api->FillStringTensor)($inputTensor[$idx], $inputTensorValues, count($inputTensorValues)));
+                return OrtValue::ortvalueFromArray($input, elementType: 'string');
             } else {
-                $flatInputSize = array_product($shape);
-
-                $inputTypes = array_flip(array_map(fn ($v) => "tensor($v)", $this->elementDataTypes()));
-                if (isset($inputTypes[$inp['type']])) {
-                    $typeEnum = $inputTypes[$inp['type']];
-                    $castType = $this->castTypes()[$typeEnum];
-                    $inputTensorValues = $this->ffi->new("{$castType}[$flatInputSize]");
+                $elementTypes = array_values($this->elementDataTypes());
+                $index = array_search($inp['type'], array_map(fn ($v) => "tensor($v)", $elementTypes));
+                if (!is_null($index)) {
+                    return OrtValue::ortvalueFromArray($input, elementType: $elementTypes[$index]);
                 } else {
                     $this->unsupportedType('input', $inp['type']);
                 }
-
-                $i = 0;
-                $this->fillTensorValues($input, $inputTensorValues, $shape, $i);
-
-                $this->checkStatus(($this->api->CreateTensorWithDataAsOrtValue)($allocatorInfo, $inputTensorValues, \FFI::sizeof($inputTensorValues), $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($inputTensor[$idx])));
-
-                $refs[] = $inputNodeDims;
-                $refs[] = $inputTensorValues;
             }
-            $idx++;
-        }
-
-        // TODO use finally
-        ($this->api->ReleaseMemoryInfo)($allocatorInfo);
-
-        return $inputTensor;
-    }
-
-    private function fillStringTensorValues($input, $ptr, $shape, &$i, &$refs)
-    {
-        $dim = array_shift($shape);
-
-        if (count($shape) == 0) {
-            for ($j = 0; $j < $dim; $j++) {
-                $strPtr = $this->cstring($input[$j]);
-                $ptr[$i] = $strPtr;
-                $refs[] = $strPtr;
-                $i++;
-            }
-        } else {
-            for ($j = 0; $j < $dim; $j++) {
-                $this->fillStringTensorValues($input[$j], $ptr, $shape, $i, $refs);
-            }
-        }
-    }
-
-    private function fillTensorValues($input, $ptr, $shape, &$i)
-    {
-        $dim = array_shift($shape);
-
-        if (count($shape) == 0) {
-            for ($j = 0; $j < $dim; $j++) {
-                $ptr[$i] = $input[$j];
-                $i++;
-            }
-        } else {
-            for ($j = 0; $j < $dim; $j++) {
-                $this->fillTensorValues($input[$j], $ptr, $shape, $i);
-            }
-        }
+        }, array_keys($inputFeed), array_values($inputFeed));
     }
 
     private function createNodeNames($names, &$refs)
@@ -436,39 +357,6 @@ class InferenceSession
             $refs[] = $strPtr;
         }
         return $ptr;
-    }
-
-    private function cstring($str)
-    {
-        $bytes = strlen($str) + 1;
-        // TODO fix?
-        $ptr = $this->ffi->new("char[$bytes]", owned: false);
-        \FFI::memcpy($ptr, $str, $bytes - 1);
-        $ptr[$bytes - 1] = "\0";
-        return $ptr;
-    }
-
-    private function elementDataTypes()
-    {
-        return [
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED => 'undefined',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => 'float',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => 'uint8',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'uint32',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING => 'string',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16 => 'float16',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => 'double',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => 'uint32',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => 'uint64',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64 => 'complex64',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128 => 'complex128',
-            $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16 => 'bfloat16'
-        ];
     }
 
     private function allocatorFree($ptr)
