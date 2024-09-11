@@ -26,6 +26,14 @@ final class InferenceSessionTest extends TestCase
         $sess->runWithOrtValues(null, ['input' => $x]);
     }
 
+    public function testRunOrtValueInput()
+    {
+        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
+        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'float');
+        $output = $sess->run(null, ['input' => $x]);
+        $this->assertEquals([1], $output[0]);
+    }
+
     public function testProviders()
     {
         $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx');

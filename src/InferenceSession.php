@@ -336,7 +336,9 @@ class InferenceSession
                 throw new Exception("Unknown input: $inputName");
             }
 
-            if ($inp['type'] == 'tensor(string)') {
+            if ($input instanceof OrtValue) {
+                return $input;
+            } elseif ($inp['type'] == 'tensor(string)') {
                 return OrtValue::ortvalueFromArray($input, elementType: 'string');
             } else {
                 $elementTypes = array_values($this->elementDataTypes());
