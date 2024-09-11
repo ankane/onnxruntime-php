@@ -189,6 +189,10 @@ class OrtValue
     {
         $castTypes = $this->castTypes();
         $type = $this->elementType();
+        if (!isset($castTypes[$type])) {
+            $this->unsupportedType('element', $type);
+        }
+
         $tensorData = $this->ffi->new($castTypes[$type] . '*');
         $this->checkStatus(($this->api->GetTensorMutableData)($this->ptr, \FFI::addr($tensorData)));
         return $tensorData;
