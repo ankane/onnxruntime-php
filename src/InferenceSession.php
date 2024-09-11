@@ -710,7 +710,7 @@ class InferenceSession
 
     private static function api()
     {
-        return (FFI::instance()->OrtGetApiBase()[0]->GetApi)(11)[0];
+        return FFI::api();
     }
 
     // wide string on Windows

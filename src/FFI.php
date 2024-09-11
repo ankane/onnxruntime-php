@@ -4,6 +4,8 @@ namespace OnnxRuntime;
 
 class FFI
 {
+    public const ORT_API_VERSION = 11;
+
     public static $lib;
 
     private static $instance;
@@ -383,6 +385,11 @@ class FFI
         }
 
         return self::$instance;
+    }
+
+    public static function api()
+    {
+        return (self::instance()->OrtGetApiBase()[0]->GetApi)(self::ORT_API_VERSION)[0];
     }
 
     public static function libVersion()
