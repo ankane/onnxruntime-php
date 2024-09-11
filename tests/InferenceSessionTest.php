@@ -7,7 +7,7 @@ final class InferenceSessionTest extends TestCase
     public function testRunWithOrtValues()
     {
         $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'float');
+        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $output = $sess->runWithOrtValues(null, ['input' => $x]);
         $this->assertTrue($output[0]->isTensor());
         $this->assertEquals('tensor(int64)', $output[0]->dataType());
@@ -22,14 +22,14 @@ final class InferenceSessionTest extends TestCase
         $this->expectExceptionMessage('Unexpected input data type. Actual: (tensor(double)) , expected: (tensor(float))');
 
         $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'double');
+        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'double');
         $sess->runWithOrtValues(null, ['input' => $x]);
     }
 
     public function testRunOrtValueInput()
     {
         $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'float');
+        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $output = $sess->run(null, ['input' => $x]);
         $this->assertEquals([1], $output[0]);
     }

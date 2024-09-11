@@ -28,7 +28,7 @@ class OrtValue
         ($this->api->ReleaseValue)($this->ptr);
     }
 
-    public static function ortvalueFromArray($input, $elementType)
+    public static function fromArray($input, $elementType)
     {
         $ffi = self::ffi();
         $api = self::api();
@@ -75,7 +75,7 @@ class OrtValue
         return new OrtValue($ptr, $inputTensorValues);
     }
 
-    public static function ortvalueFromShapeAndType($shape, $elementType)
+    public static function fromShapeAndType($shape, $elementType)
     {
         $ffi = self::ffi();
         $api = self::api();

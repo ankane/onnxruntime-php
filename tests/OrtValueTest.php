@@ -4,9 +4,9 @@ use PHPUnit\Framework\TestCase;
 
 final class OrtValueTest extends TestCase
 {
-    public function testOrtvalueFromArray()
+    public function testFromArray()
     {
-        $value = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'float');
+        $value = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $this->assertTrue($value->isTensor());
         $this->assertEquals('tensor(float)', $value->dataType());
         $this->assertEquals(1, $value->elementType());
@@ -18,9 +18,9 @@ final class OrtValueTest extends TestCase
         $this->assertEqualsWithDelta(2.8, $dataPtr[1], 0.00001);
     }
 
-    public function testOrtvalueFromShapeAndType()
+    public function testFromShapeAndType()
     {
-        $value = OnnxRuntime\OrtValue::ortvalueFromShapeAndType(shape: [1, 2], elementType: 'float');
+        $value = OnnxRuntime\OrtValue::fromShapeAndType(shape: [1, 2], elementType: 'float');
         $dataPtr = $value->dataPtr();
         $dataPtr[0] = 5.8;
         $dataPtr[1] = 2.8;
