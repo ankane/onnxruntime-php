@@ -115,10 +115,12 @@ class OrtValue
         return $outType->cdata == $this->ffi->ONNX_TYPE_TENSOR;
     }
 
-    // public function dataType()
-    // {
-
-    // }
+    public function dataType()
+    {
+        $typeinfo = $this->ffi->new('OrtTypeInfo*');
+        $this->checkStatus(($this->api->GetTypeInfo)($this->ptr, \FFI::addr($typeinfo)));
+        return $this->nodeInfo($typeinfo)['type'];
+    }
 
     // public function elementType()
     // {

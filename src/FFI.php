@@ -237,7 +237,7 @@ class FFI
                     OrtStatus*(* GetSymbolicDimensions)(const OrtTensorTypeAndShapeInfo* info, const char* dim_params[], size_t dim_params_length);
                     OrtStatus*(* GetTensorShapeElementCount)(const OrtTensorTypeAndShapeInfo* info, size_t* out);
                     OrtStatus*(* GetTensorTypeAndShape)(const OrtValue* value, OrtTensorTypeAndShapeInfo** out);
-                    OrtStatus*(* GetTypeInfo)();
+                    OrtStatus*(* GetTypeInfo)(const OrtValue* value, OrtTypeInfo** out);
                     OrtStatus*(* GetValueType)(const OrtValue* value, enum ONNXType* out);
                     OrtStatus*(* CreateMemoryInfo)();
                     OrtStatus*(* CreateCpuMemoryInfo)(enum OrtAllocatorType type, enum OrtMemType mem_type, OrtMemoryInfo** out);
