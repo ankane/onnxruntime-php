@@ -75,6 +75,29 @@ class OrtValue
         return new OrtValue($ptr, $inputTensorValues);
     }
 
+    public static function ortvalueFromShapeAndType($shape, $elementType)
+    {
+        $ffi = self::ffi();
+        $api = self::api();
+        $allocator = self::loadAllocator();
+
+        $typeEnum = array_search($elementType, self::elementDataTypes());
+        if (is_null($typeEnum)) {
+            self::unsupportedType('element', $elementType);
+        }
+
+        $shapeSize = count($shape);
+        $inputNodeDims = $ffi->new("int64_t[$shapeSize]");
+        for ($i = 0; $i < $shapeSize; $i++) {
+            $inputNodeDims[$i] = $shape[$i];
+        }
+
+        $ptr = $ffi->new('OrtValue*');
+        self::checkStatus(($api->CreateTensorAsOrtValue)($allocator, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
+
+        return new OrtValue($ptr);
+    }
+
     private static function fillStringTensorValues($input, $ptr, $shape, &$i, &$refs)
     {
         $dim = array_shift($shape);
@@ -160,6 +183,15 @@ class OrtValue
     public function toPtr()
     {
         return $this->ptr;
+    }
+
+    public function dataPtr()
+    {
+        $castTypes = $this->castTypes();
+        $type = $this->elementType();
+        $tensorData = $this->ffi->new($castTypes[$type] . '*');
+        $this->checkStatus(($this->api->GetTensorMutableData)($this->ptr, \FFI::addr($tensorData)));
+        return $tensorData;
     }
 
     private function createFromOnnxValue($outPtr)
