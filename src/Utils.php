@@ -138,7 +138,7 @@ trait Utils
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => 'int8',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => 'uint16',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => 'int16',
-            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'uint32',
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => 'int32',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => 'int64',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING => 'string',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => 'bool',
@@ -149,6 +149,31 @@ trait Utils
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64 => 'complex64',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128 => 'complex128',
             $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16 => 'bfloat16'
+        ];
+    }
+
+    private static function typeEnumToElementType()
+    {
+        $ffi = self::ffi();
+
+        return [
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UNDEFINED => ElementType::Undefined,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT => ElementType::Float,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8 => ElementType::UInt8,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8 => ElementType::Int8,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16 => ElementType::UInt16,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16 => ElementType::Int16,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 => ElementType::Int32,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 => ElementType::Int64,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING => ElementType::String,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL => ElementType::Bool,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16 => ElementType::Float16,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE => ElementType::Double,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32 => ElementType::UInt32,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64 => ElementType::UInt64,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX64 => ElementType::Complex64,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_COMPLEX128 => ElementType::Complex128,
+            $ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16 => ElementType::BFloat16
         ];
     }
 

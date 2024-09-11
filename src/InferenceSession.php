@@ -339,12 +339,11 @@ class InferenceSession
             if ($input instanceof OrtValue) {
                 return $input;
             } elseif ($inp['type'] == 'tensor(string)') {
-                return OrtValue::fromArray($input, elementType: 'string');
+                return OrtValue::fromArray($input, ElementType::String);
             } else {
-                $elementTypes = array_values($this->elementDataTypes());
-                $index = array_search($inp['type'], array_map(fn ($v) => "tensor($v)", $elementTypes));
-                if (!is_null($index)) {
-                    return OrtValue::fromArray($input, elementType: $elementTypes[$index]);
+                $typeEnum = array_search($inp['type'], array_map(fn ($v) => "tensor($v)", $this->elementDataTypes()));
+                if (!is_null($typeEnum)) {
+                    return OrtValue::fromArray($input, $this->typeEnumToElementType()[$typeEnum]);
                 } else {
                     $this->unsupportedType('input', $inp['type']);
                 }

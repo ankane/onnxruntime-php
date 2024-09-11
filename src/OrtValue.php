@@ -28,13 +28,13 @@ class OrtValue
         ($this->api->ReleaseValue)($this->ptr);
     }
 
-    public static function fromArray($input, $elementType)
+    public static function fromArray($input, ElementType $elementType)
     {
         $ffi = self::ffi();
         $api = self::api();
         $allocator = self::loadAllocator();
 
-        $typeEnum = array_search($elementType, self::elementDataTypes());
+        $typeEnum = array_search($elementType, self::typeEnumToElementType());
         if (is_null($typeEnum)) {
             self::unsupportedType('element', $elementType);
         }
@@ -53,7 +53,7 @@ class OrtValue
         }
 
         $ptr = $ffi->new('OrtValue*');
-        if ($elementType == 'string') {
+        if ($elementType == ElementType::String) {
             $flatInputSize = array_product($shape);
             $inputTensorValues = $ffi->new("char*[$flatInputSize]");
             $i = 0;
@@ -75,13 +75,13 @@ class OrtValue
         return new OrtValue($ptr, $inputTensorValues);
     }
 
-    public static function fromShapeAndType($shape, $elementType)
+    public static function fromShapeAndType($shape, ElementType $elementType)
     {
         $ffi = self::ffi();
         $api = self::api();
         $allocator = self::loadAllocator();
 
-        $typeEnum = array_search($elementType, self::elementDataTypes());
+        $typeEnum = array_search($elementType, self::typeEnumToElementType());
         if (is_null($typeEnum)) {
             self::unsupportedType('element', $elementType);
         }
@@ -148,6 +148,11 @@ class OrtValue
 
     public function elementType()
     {
+        return $this->typeEnumToElementType()[$this->elementTypeEnum()];
+    }
+
+    private function elementTypeEnum()
+    {
         return $this->typeAndShapeInfo()[0];
     }
 
@@ -188,7 +193,7 @@ class OrtValue
     public function dataPtr()
     {
         $castTypes = $this->castTypes();
-        $type = $this->elementType();
+        $type = $this->elementTypeEnum();
         if (!isset($castTypes[$type])) {
             $this->unsupportedType('element', $type);
         }
