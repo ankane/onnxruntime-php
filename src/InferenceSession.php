@@ -135,9 +135,6 @@ class InferenceSession
 
     public function runWithOrtValues($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
     {
-        // pointer references
-        $refs = [];
-
         $inputFeedSize = count($inputFeed);
         if ($inputFeedSize == 0) {
             throw new Exception('No input');
@@ -151,6 +148,7 @@ class InferenceSession
 
         $outputsSize = count($outputNames);
         $outputTensor = $this->ffi->new("OrtValue*[$outputsSize]");
+        $refs = [];
         $inputNodeNames = $this->createNodeNames(array_keys($inputFeed), $refs);
         $outputNodeNames = $this->createNodeNames($outputNames, $refs);
 
