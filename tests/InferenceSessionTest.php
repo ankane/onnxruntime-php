@@ -11,6 +11,7 @@ final class InferenceSessionTest extends TestCase
         $output = $sess->runWithOrtValues(null, ['input' => $x]);
         $this->assertTrue($output[0]->isTensor());
         $this->assertEquals('tensor(int64)', $output[0]->dataType());
+        $this->assertEquals([1], $output[0]->shape());
         $this->assertEquals([1], $output[0]->toObject());
         $this->assertFalse($output[1]->isTensor());
         $this->assertEquals('seq(map(int64,tensor(float)))', $output[1]->dataType());
