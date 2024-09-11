@@ -2,11 +2,13 @@
 
 use PHPUnit\Framework\TestCase;
 
+use OnnxRuntime\OrtValue;
+
 final class OrtValueTest extends TestCase
 {
     public function testFromArray()
     {
-        $value = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
+        $value = OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $this->assertTrue($value->isTensor());
         $this->assertEquals('tensor(float)', $value->dataType());
         $this->assertEquals(1, $value->elementType());
@@ -20,7 +22,7 @@ final class OrtValueTest extends TestCase
 
     public function testFromShapeAndType()
     {
-        $value = OnnxRuntime\OrtValue::fromShapeAndType(shape: [1, 2], elementType: 'float');
+        $value = OrtValue::fromShapeAndType(shape: [1, 2], elementType: 'float');
         $dataPtr = $value->dataPtr();
         $dataPtr[0] = 5.8;
         $dataPtr[1] = 2.8;

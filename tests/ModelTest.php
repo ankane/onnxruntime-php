@@ -2,11 +2,13 @@
 
 use PHPUnit\Framework\TestCase;
 
+use OnnxRuntime\Model;
+
 final class ModelTest extends TestCase
 {
     public function testWorks()
     {
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
 
         $expected = [['name' => 'x', 'type' => 'tensor(float)', 'shape' => [3, 4, 5]]];
         $this->assertEquals($expected, $model->inputs());
@@ -35,7 +37,7 @@ final class ModelTest extends TestCase
 
     public function testInputString()
     {
-        $model = new OnnxRuntime\Model('tests/support/identity_string.onnx');
+        $model = new Model('tests/support/identity_string.onnx');
         $x = [['one', 'two'], ['three', 'four']];
         $output = $model->predict(['input:0' => $x]);
         $this->assertEquals($x, $output['output:0']);
@@ -43,7 +45,7 @@ final class ModelTest extends TestCase
 
     public function testInputBool()
     {
-        $model = new OnnxRuntime\Model('tests/support/logical_and.onnx');
+        $model = new Model('tests/support/logical_and.onnx');
         $x = [[false, false], [true, true]];
         $x2 = [[true, false], [true, false]];
         $output = $model->predict(['input:0' => $x, 'input1:0' => $x2]);
@@ -53,14 +55,14 @@ final class ModelTest extends TestCase
     public function testStream()
     {
         $stream = fopen('tests/support/model.onnx', 'rb');
-        $model = new OnnxRuntime\Model($stream);
+        $model = new Model($stream);
         $expected = [['name' => 'x', 'type' => 'tensor(float)', 'shape' => [3, 4, 5]]];
         $this->assertEquals($expected, $model->inputs());
     }
 
     public function testLightGBM()
     {
-        $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
+        $model = new Model('tests/support/lightgbm.onnx');
 
         $expected = [['name' => 'input', 'type' => 'tensor(float)', 'shape' => [1, 2]]];
         $this->assertEquals($expected, $model->inputs());
@@ -92,7 +94,7 @@ final class ModelTest extends TestCase
 
     public function testRandomForest()
     {
-        $model = new OnnxRuntime\Model('tests/support/randomforest.onnx');
+        $model = new Model('tests/support/randomforest.onnx');
 
         $expected = [['name' => 'float_input', 'type' => 'tensor(float)', 'shape' => [1, 4]]];
         $this->assertEquals($expected, $model->inputs());
@@ -114,7 +116,7 @@ final class ModelTest extends TestCase
 
     public function testOutputNames()
     {
-        $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
+        $model = new Model('tests/support/lightgbm.onnx');
         $output = $model->predict(['input' => [[5.8, 2.8]]], outputNames: ['label']);
         $this->assertEquals(['label'], array_keys($output));
     }
@@ -123,7 +125,7 @@ final class ModelTest extends TestCase
     {
         $optimizedPath = tempnam(sys_get_temp_dir(), 'optimized');
 
-        $model = new OnnxRuntime\Model(
+        $model = new Model(
             'tests/support/lightgbm.onnx',
             executionMode: OnnxRuntime\ExecutionMode::Sequential,
             graphOptimizationLevel: OnnxRuntime\GraphOptimizationLevel::All,
@@ -142,32 +144,32 @@ final class ModelTest extends TestCase
 
     public function testFreeDimensionOverridesByDenotation()
     {
-        $model = new OnnxRuntime\Model('tests/support/abs_free_dimensions.onnx', freeDimensionOverridesByDenotation: ['DATA_BATCH' => 3, 'DATA_CHANNEL' => 5]);
+        $model = new Model('tests/support/abs_free_dimensions.onnx', freeDimensionOverridesByDenotation: ['DATA_BATCH' => 3, 'DATA_CHANNEL' => 5]);
         $this->assertEquals([3, 5, 5], $model->inputs()[0]['shape']);
     }
 
     public function testFreeDimensionOverridesByName()
     {
-        $model = new OnnxRuntime\Model('tests/support/abs_free_dimensions.onnx', freeDimensionOverridesByName: ['Dim1' => 4, 'Dim2' => 6]);
+        $model = new Model('tests/support/abs_free_dimensions.onnx', freeDimensionOverridesByName: ['Dim1' => 4, 'Dim2' => 6]);
         $this->assertEquals([4, 6, 5], $model->inputs()[0]['shape']);
     }
 
     public function testInputShapeNames()
     {
-        $model = new OnnxRuntime\Model('tests/support/abs_free_dimensions.onnx');
+        $model = new Model('tests/support/abs_free_dimensions.onnx');
         $this->assertEquals(['Dim1', 'Dim2', 5], $model->inputs()[0]['shape']);
     }
 
     // TODO improve test
     public function testSessionConfigEntries()
     {
-        new OnnxRuntime\Model('tests/support/lightgbm.onnx', sessionConfigEntries: ['key' => 'value']);
+        new Model('tests/support/lightgbm.onnx', sessionConfigEntries: ['key' => 'value']);
         $this->assertTrue(true);
     }
 
     public function testRunOptions()
     {
-        $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
+        $model = new Model('tests/support/lightgbm.onnx');
         $x = [[5.8, 2.8]];
         $model->predict(['input' => $x], logSeverityLevel: 4, logVerbosityLevel: 4, logid: 'test', terminate: false);
         $this->assertTrue(true);
@@ -178,7 +180,7 @@ final class ModelTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('Invalid rank for input: x');
 
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
         $model->predict(['x' => [1]]);
     }
 
@@ -187,7 +189,7 @@ final class ModelTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('Got invalid dimensions for input: x');
 
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
         $model->predict(['x' => [[[1]]]]);
     }
 
@@ -196,7 +198,7 @@ final class ModelTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('No input');
 
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
         $model->predict([]);
     }
 
@@ -205,7 +207,7 @@ final class ModelTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('Unknown input: y');
 
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
         $model->predict(['x' => [1], 'y' => [1]]);
     }
 
@@ -214,14 +216,14 @@ final class ModelTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('Invalid output name: bad');
 
-        $model = new OnnxRuntime\Model('tests/support/lightgbm.onnx');
+        $model = new Model('tests/support/lightgbm.onnx');
         $x = [[5.8, 2.8]];
         $model->predict(['input' => $x], outputNames: ['bad']);
     }
 
     public function testMetadata()
     {
-        $model = new OnnxRuntime\Model('tests/support/model.onnx');
+        $model = new Model('tests/support/model.onnx');
         $metadata = $model->metadata();
         $this->assertEquals(['hello' => 'world', 'test' => 'value'], $metadata['custom_metadata_map']);
         $this->assertEquals('', $metadata['description']);

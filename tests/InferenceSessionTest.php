@@ -2,12 +2,15 @@
 
 use PHPUnit\Framework\TestCase;
 
+use OnnxRuntime\InferenceSession;
+use OnnxRuntime\OrtValue;
+
 final class InferenceSessionTest extends TestCase
 {
     public function testRunWithOrtValues()
     {
-        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
+        $sess = new InferenceSession('tests/support/lightgbm.onnx');
+        $x = OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $output = $sess->runWithOrtValues(null, ['input' => $x]);
         $this->assertTrue($output[0]->isTensor());
         $this->assertEquals('tensor(int64)', $output[0]->dataType());
@@ -23,29 +26,29 @@ final class InferenceSessionTest extends TestCase
         $this->expectException(OnnxRuntime\Exception::class);
         $this->expectExceptionMessage('Unexpected input data type. Actual: (tensor(double)) , expected: (tensor(float))');
 
-        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'double');
+        $sess = new InferenceSession('tests/support/lightgbm.onnx');
+        $x = OrtValue::fromArray([[5.8, 2.8]], elementType: 'double');
         $sess->runWithOrtValues(null, ['input' => $x]);
     }
 
     public function testRunOrtValueInput()
     {
-        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
-        $x = OnnxRuntime\OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
+        $sess = new InferenceSession('tests/support/lightgbm.onnx');
+        $x = OrtValue::fromArray([[5.8, 2.8]], elementType: 'float');
         $output = $sess->run(null, ['input' => $x]);
         $this->assertEquals([1], $output[0]);
     }
 
     public function testProviders()
     {
-        $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx');
+        $sess = new InferenceSession('tests/support/model.onnx');
         $this->assertContains('CPUExecutionProvider', $sess->providers());
     }
 
     public function testProvidersCuda()
     {
         // Provider not available: CUDAExecutionProvider
-        $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx', providers: ['CUDAExecutionProvider', 'CPUExecutionProvider']);
+        $sess = new InferenceSession('tests/support/model.onnx', providers: ['CUDAExecutionProvider', 'CPUExecutionProvider']);
         $this->assertNotContains('CUDAExecutionProvider', $sess->providers());
     }
 
@@ -59,7 +62,7 @@ final class InferenceSessionTest extends TestCase
         if (getenv('VERBOSE')) {
             $options['logSeverityLevel'] = 1;
         }
-        $sess = new OnnxRuntime\InferenceSession('datasets/mul_1.onnx', ...$options);
+        $sess = new InferenceSession('datasets/mul_1.onnx', ...$options);
         $output = $sess->run(null, ['X' => [[1, 2], [3, 4], [5, 6]]]);
         $this->assertEqualsWithDelta([1, 4], $output[0][0], 0.00001);
         $this->assertEqualsWithDelta([9, 16], $output[0][1], 0.00001);
@@ -68,7 +71,7 @@ final class InferenceSessionTest extends TestCase
 
     public function testProfiling()
     {
-        $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx', enableProfiling: true);
+        $sess = new InferenceSession('tests/support/model.onnx', enableProfiling: true);
         $file = $sess->endProfiling();
         $this->assertStringContainsString('.json', $file);
         unlink($file);
@@ -76,7 +79,7 @@ final class InferenceSessionTest extends TestCase
 
     public function testProfileFilePrefix()
     {
-        $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx', enableProfiling: true, profileFilePrefix: 'hello');
+        $sess = new InferenceSession('tests/support/model.onnx', enableProfiling: true, profileFilePrefix: 'hello');
         $file = $sess->endProfiling();
         $this->assertStringContainsString('hello', $file);
         unlink($file);

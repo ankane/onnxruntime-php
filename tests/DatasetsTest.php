@@ -2,6 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 
+use OnnxRuntime\Datasets;
+use OnnxRuntime\Model;
+
 final class DatasetsTest extends TestCase
 {
     public function testExamples()
@@ -17,7 +20,7 @@ final class DatasetsTest extends TestCase
         // same message as Python
         $this->expectExceptionMessage("Unable to find example 'bad.onnx'");
 
-        OnnxRuntime\Datasets::example('bad.onnx');
+        Datasets::example('bad.onnx');
     }
 
     public function testNoPathTraversal()
@@ -25,13 +28,13 @@ final class DatasetsTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Unable to find example '../datasets/sigmoid.onnx'");
 
-        OnnxRuntime\Datasets::example('../datasets/sigmoid.onnx');
+        Datasets::example('../datasets/sigmoid.onnx');
     }
 
     private function assertExample($name, $inputNames)
     {
-        $example = OnnxRuntime\Datasets::example($name);
-        $model = new OnnxRuntime\Model($example);
+        $example = Datasets::example($name);
+        $model = new Model($example);
         $this->assertEquals($inputNames, array_map(fn ($i) => $i['name'], $model->inputs()));
     }
 }
