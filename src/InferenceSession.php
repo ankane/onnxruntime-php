@@ -128,6 +128,13 @@ class InferenceSession
 
     public function run($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
     {
+        $ortValues = array_combine(array_keys($inputFeed), $this->createInputTensor($inputFeed));
+        $output = $this->runWithOrtValues($outputNames, $ortValues, logSeverityLevel: $logSeverityLevel, logVerbosityLevel: $logVerbosityLevel, logid: $logid, terminate: $terminate);
+        return array_map(fn ($v) => $v->toObject(), $output);
+    }
+
+    public function runWithOrtValues($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
+    {
         // pointer references
         $refs = [];
 
@@ -136,9 +143,7 @@ class InferenceSession
             throw new Exception('No input');
         }
         $inputTensor = $this->ffi->new("OrtValue*[$inputFeedSize]");
-
-        $ortValues = $this->createInputTensor($inputFeed);
-        foreach ($ortValues as $i => $ortValue) {
+        foreach (array_values($inputFeed) as $i => $ortValue) {
             $inputTensor[$i] = $ortValue->toPtr();
         }
 
@@ -173,7 +178,7 @@ class InferenceSession
 
         $output = [];
         foreach ($outputTensor as $t) {
-            $output[] = (new OrtValue($t))->toObject();
+            $output[] = new OrtValue($t);
         }
 
         // TODO use finally

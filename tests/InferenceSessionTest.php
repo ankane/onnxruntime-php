@@ -4,6 +4,28 @@ use PHPUnit\Framework\TestCase;
 
 final class InferenceSessionTest extends TestCase
 {
+    public function testRunWithOrtValues()
+    {
+        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
+        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'float');
+        $output = $sess->runWithOrtValues(null, ['input' => $x]);
+        $this->assertTrue($output[0]->isTensor());
+        $this->assertEquals('tensor(int64)', $output[0]->dataType());
+        $this->assertEquals([1], $output[0]->toObject());
+        $this->assertFalse($output[1]->isTensor());
+        $this->assertEquals('seq(map(int64,tensor(float)))', $output[1]->dataType());
+    }
+
+    public function testRunWithOrtValuesInvalidType()
+    {
+        $this->expectException(OnnxRuntime\Exception::class);
+        $this->expectExceptionMessage('Unexpected input data type. Actual: (tensor(double)) , expected: (tensor(float))');
+
+        $sess = new OnnxRuntime\InferenceSession('tests/support/lightgbm.onnx');
+        $x = OnnxRuntime\OrtValue::ortvalueFromArray([[5.8, 2.8]], elementType: 'double');
+        $sess->runWithOrtValues(null, ['input' => $x]);
+    }
+
     public function testProviders()
     {
         $sess = new OnnxRuntime\InferenceSession('tests/support/model.onnx');
