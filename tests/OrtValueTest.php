@@ -23,13 +23,13 @@ final class OrtValueTest extends TestCase
 
     public function testFromShapeAndType()
     {
-        $value = OrtValue::fromShapeAndType([1, 2], ElementType::Float);
+        $value = OrtValue::fromShapeAndType([1, 2], ElementType::Double);
         $dataPtr = $value->dataPtr();
         $dataPtr[0] = 5.8;
         $dataPtr[1] = 2.8;
         $this->assertTrue($value->isTensor());
-        $this->assertEquals('tensor(float)', $value->dataType());
-        $this->assertEquals(ElementType::Float, $value->elementType());
+        $this->assertEquals('tensor(double)', $value->dataType());
+        $this->assertEquals(ElementType::Double, $value->elementType());
         $this->assertEquals([1, 2], $value->shape());
         $this->assertEquals('cpu', $value->deviceName());
         $this->assertEqualsWithDelta([5.8, 2.8], $value->toObject()[0], 0.00001);
