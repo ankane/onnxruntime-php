@@ -11,6 +11,7 @@ class OrtValue
     private $allocator;
     private $ptr;
     private $ref;
+    private $typeAndShapeInfo;
 
     public function __construct($ptr, &$ref = null)
     {
@@ -122,15 +123,29 @@ class OrtValue
         return $this->nodeInfo($typeinfo)['type'];
     }
 
-    // public function elementType()
-    // {
+    public function elementType()
+    {
+        return $this->typeAndShapeInfo()[0];
+    }
 
-    // }
+    public function shape()
+    {
+        return $this->typeAndShapeInfo()[1];
+    }
 
-    // public function shape()
-    // {
+    private function typeAndShapeInfo()
+    {
+        if (!isset($this->typeAndShapeInfo)) {
+            $typeinfo = $this->ffi->new('OrtTensorTypeAndShapeInfo*');
+            $this->checkStatus(($this->api->GetTensorTypeAndShape)($this->ptr, \FFI::addr($typeinfo)));
+            $this->typeAndShapeInfo = $this->tensorTypeAndShape($typeinfo);
 
-    // }
+            // TODO use finally
+            ($this->api->ReleaseTensorTypeAndShapeInfo)($typeinfo);
+        }
+
+        return $this->typeAndShapeInfo;
+    }
 
     public function deviceName()
     {
