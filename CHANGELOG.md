@@ -1,4 +1,4 @@
-## 0.2.3 (unreleased)
+## 0.2.3 (2024-09-17)
 
 - Added experimental `OrtValue` class
 - Added experimental `runWithOrtValues` method
