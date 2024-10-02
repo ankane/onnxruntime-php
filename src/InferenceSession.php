@@ -342,7 +342,7 @@ class InferenceSession
                 return OrtValue::fromArray($input, ElementType::String);
             } else {
                 $typeEnum = array_search($inp['type'], array_map(fn ($v) => "tensor($v)", $this->elementDataTypes()));
-                if (!is_null($typeEnum)) {
+                if ($typeEnum !== false) {
                     return OrtValue::fromArray($input, $this->typeEnumToElementType()[$typeEnum]);
                 } else {
                     $this->unsupportedType('input', $inp['type']);
