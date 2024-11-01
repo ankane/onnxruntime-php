@@ -1,3 +1,7 @@
+## 0.2.4 (unreleased)
+
+- Updated ONNX Runtime to 1.20.0
+
 ## 0.2.3 (2024-09-17)
 
 - Added experimental `OrtValue` class
