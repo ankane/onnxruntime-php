@@ -390,16 +390,22 @@ class InferenceSession
         }
     }
 
+    private static $env;
+
     private static function env()
     {
         // TODO use mutex for thread-safety
-        // TODO memoize
 
-        $env = FFI::instance()->new('OrtEnv*');
-        (self::api()->CreateEnv)(3, 'Default', \FFI::addr($env));
-        // disable telemetry
-        // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
-        self::checkStatus((self::api()->DisableTelemetryEvents)($env));
-        return $env;
+        if (!isset(self::$env)) {
+            $env = FFI::instance()->new('OrtEnv*');
+            (self::api()->CreateEnv)(3, 'Default', \FFI::addr($env));
+            register_shutdown_function(fn () => (self::api()->ReleaseEnv)($env));
+            // disable telemetry
+            // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
+            self::checkStatus((self::api()->DisableTelemetryEvents)($env));
+            self::$env = $env;
+        }
+
+        return self::$env;
     }
 }
