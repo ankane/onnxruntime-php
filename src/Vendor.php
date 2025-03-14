@@ -71,6 +71,11 @@ class Vendor
         if ($ext != 'zip') {
             $archive = $archive->decompress();
         }
+
+        $extractionDir = self::libDir() . '/' . self::withVersion($file);
+       if (file_exists($extractionDir)) {
+           self::recursiveRemoveDirectory($extractionDir);
+       }
         $archive->extractTo(self::libDir());
 
         echo "✔ Success\n";
@@ -118,5 +123,17 @@ class Vendor
     private static function withVersion($str)
     {
         return str_replace('{{version}}', self::VERSION, $str);
+    }
+
+    private static function recursiveRemoveDirectory($directory)
+    {
+        foreach (glob("{$directory}/*") as $file) {
+            if (is_dir($file)) {
+                self::recursiveRemoveDirectory($file);
+            } else {
+                unlink($file);
+            }
+        }
+        rmdir($directory);
     }
 }
