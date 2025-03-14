@@ -71,7 +71,7 @@ class Vendor
         if ($ext != 'zip') {
             $archive = $archive->decompress();
         }
-        $archive->extractTo(self::libDir());
+        $archive->extractTo(self::libDir(), overwrite: true);
 
         echo "✔ Success\n";
     }
