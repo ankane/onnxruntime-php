@@ -1,4 +1,4 @@
-## 0.2.6 (unreleased)
+## 0.2.6 (2025-03-21)
 
 - Fixed error if shared library extraction was previously interrupted
 
