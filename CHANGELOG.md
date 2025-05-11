@@ -1,4 +1,4 @@
-## 0.2.7 (unreleased)
+## 0.2.7 (2025-05-11)
 
 - Updated ONNX Runtime to 1.22.0
 
