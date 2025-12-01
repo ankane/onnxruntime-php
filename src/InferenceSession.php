@@ -35,6 +35,9 @@ class InferenceSession
         $this->ffi = self::ffi();
         $this->api = self::api();
 
+        // create environment first to prevent uncaught exception with CoreMLExecutionProvider
+        self::env();
+
         // session options
         $sessionOptions = $this->ffi->new('OrtSessionOptions*');
         $this->checkStatus(($this->api->CreateSessionOptions)(\FFI::addr($sessionOptions)));

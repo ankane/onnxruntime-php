@@ -1,3 +1,7 @@
+## 0.2.9 (unreleased)
+
+- Fixed uncaught exception with `CoreMLExecutionProvider`
+
 ## 0.2.8 (2025-09-30)
 
 - Updated ONNX Runtime to 1.23.0
