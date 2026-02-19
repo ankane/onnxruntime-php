@@ -1,6 +1,7 @@
 ## 0.2.9 (unreleased)
 
 - Fixed uncaught exception with `CoreMLExecutionProvider`
+- Fixed memory leaks
 
 ## 0.2.8 (2025-09-30)
 
