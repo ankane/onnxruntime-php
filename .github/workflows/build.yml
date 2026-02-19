@@ -8,12 +8,12 @@ jobs:
         os: [ubuntu-latest, macos-15-intel, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
-      - if: ${{ startsWith(matrix.os, 'windows') }}
+      - uses: actions/checkout@v6
+      - if: ${{ runner.os == 'Windows' }}
         run: |
           (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini
           (Get-Content C:\tools\php\php.ini) -replace ';ffi.enable=preload', 'ffi.enable=preload' | Out-File -encoding ASCII C:\tools\php\php.ini
       - run: composer install
       - run: composer test
-      - if: ${{ startsWith(matrix.os, 'mac') }}
+      - if: ${{ runner.os == 'macOS' }}
         run: composer test -- --filter CoreML
