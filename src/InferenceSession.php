@@ -190,33 +190,41 @@ class InferenceSession
 
     public function modelmeta()
     {
-        $keys = new Pointer($this->ffi->new('char**'), $this->allocatorFree(...));
-        $numKeys = $this->ffi->new('int64_t');
-        $description = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $domain = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $graphName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $graphDescription = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $producerName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $version = $this->ffi->new('int64_t');
-
         $metadata = new Pointer($this->ffi->new('OrtModelMetadata*'), $this->api->ReleaseModelMetadata);
         $this->checkStatus(($this->api->SessionGetModelMetadata)($this->session->ptr, \FFI::addr($metadata->ptr)));
 
-        $customMetadataMap = [];
+        $keys = new Pointer($this->ffi->new('char**'), $this->allocatorFree(...));
+        $numKeys = $this->ffi->new('int64_t');
         $this->checkStatus(($this->api->ModelMetadataGetCustomMetadataMapKeys)($metadata->ptr, $this->allocator->ptr, \FFI::addr($keys->ptr), \FFI::addr($numKeys)));
+        $keyPtrs = [];
         for ($i = 0; $i < $numKeys->cdata; $i++) {
-            $keyPtr = new Pointer($keys->ptr[$i], $this->allocatorFree(...));
+            $keyPtrs[] = new Pointer($keys->ptr[$i], $this->allocatorFree(...));
+        }
+
+        $customMetadataMap = [];
+        foreach ($keyPtrs as $keyPtr) {
             $key = \FFI::string($keyPtr->ptr);
             $value = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
             $this->checkStatus(($this->api->ModelMetadataLookupCustomMetadataMap)($metadata->ptr, $this->allocator->ptr, $key, \FFI::addr($value->ptr)));
             $customMetadataMap[$key] = \FFI::string($value->ptr);
         }
 
+        $description = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $this->checkStatus(($this->api->ModelMetadataGetDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($description->ptr)));
+
+        $domain = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $this->checkStatus(($this->api->ModelMetadataGetDomain)($metadata->ptr, $this->allocator->ptr, \FFI::addr($domain->ptr)));
+
+        $graphName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $this->checkStatus(($this->api->ModelMetadataGetGraphName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphName->ptr)));
+
+        $graphDescription = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $this->checkStatus(($this->api->ModelMetadataGetGraphDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphDescription->ptr)));
+
+        $producerName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $this->checkStatus(($this->api->ModelMetadataGetProducerName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($producerName->ptr)));
+
+        $version = $this->ffi->new('int64_t');
         $this->checkStatus(($this->api->ModelMetadataGetVersion)($metadata->ptr, \FFI::addr($version)));
 
         return [
