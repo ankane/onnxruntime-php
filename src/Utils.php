@@ -4,8 +4,10 @@ namespace OnnxRuntime;
 
 trait Utils
 {
-    private static function checkStatus($status)
+    private static function checkStatus($func, ...$args)
     {
+        $args = array_map(fn ($v) => $v instanceof Pointer ? $v->ptr : $v, $args);
+        $status = $func(...$args);
         if (!is_null($status)) {
             $message = (self::api()->GetErrorMessage)($status);
             (self::api()->ReleaseStatus)($status);
@@ -31,19 +33,19 @@ trait Utils
     private function tensorTypeAndShape($tensorInfo)
     {
         $type = $this->ffi->new('ONNXTensorElementDataType');
-        $this->checkStatus(($this->api->GetTensorElementType)($tensorInfo->ptr, \FFI::addr($type)));
+        $this->checkStatus($this->api->GetTensorElementType, $tensorInfo, \FFI::addr($type));
 
         $numDimsPtr = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->GetDimensionsCount)($tensorInfo->ptr, \FFI::addr($numDimsPtr)));
+        $this->checkStatus($this->api->GetDimensionsCount, $tensorInfo, \FFI::addr($numDimsPtr));
         $numDims = $numDimsPtr->cdata;
 
         if ($numDims > 0) {
             $nodeDims = $this->ffi->new("int64_t[$numDims]");
-            $this->checkStatus(($this->api->GetDimensions)($tensorInfo->ptr, $nodeDims, $numDims));
+            $this->checkStatus($this->api->GetDimensions, $tensorInfo, $nodeDims, $numDims);
             $dims = $this->readArray($nodeDims);
 
             $symbolicDims = $this->ffi->new("char*[$numDims]");
-            $this->checkStatus(($this->api->GetSymbolicDimensions)($tensorInfo->ptr, $symbolicDims, $numDims));
+            $this->checkStatus($this->api->GetSymbolicDimensions, $tensorInfo, $symbolicDims, $numDims);
             for ($i = 0; $i < $numDims; $i++) {
                 $namedDim = \FFI::string($symbolicDims[$i]);
                 if ($namedDim != '') {
@@ -60,37 +62,37 @@ trait Utils
     private function nodeInfo($typeinfo)
     {
         $onnxType = $this->ffi->new('ONNXType');
-        $this->checkStatus(($this->api->GetOnnxTypeFromTypeInfo)($typeinfo->ptr, \FFI::addr($onnxType)));
+        $this->checkStatus($this->api->GetOnnxTypeFromTypeInfo, $typeinfo, \FFI::addr($onnxType));
 
         if ($onnxType->cdata == $this->ffi->ONNX_TYPE_TENSOR) {
             // don't free tensor_info
             $tensorInfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'));
-            $this->checkStatus(($this->api->CastTypeInfoToTensorInfo)($typeinfo->ptr, \FFI::addr($tensorInfo->ptr)));
+            $this->checkStatus($this->api->CastTypeInfoToTensorInfo, $typeinfo, $tensorInfo->ref());
 
             [$type, $shape] = $this->tensorTypeAndShape($tensorInfo);
             $elementDataType = $this->elementDataTypes()[$type];
             return ['type' => "tensor($elementDataType)", 'shape' => $shape];
         } elseif ($onnxType->cdata == $this->ffi->ONNX_TYPE_SEQUENCE) {
             $sequenceTypeInfo = $this->ffi->new('OrtSequenceTypeInfo*');
-            $this->checkStatus(($this->api->CastTypeInfoToSequenceTypeInfo)($typeinfo->ptr, \FFI::addr($sequenceTypeInfo)));
+            $this->checkStatus($this->api->CastTypeInfoToSequenceTypeInfo, $typeinfo, \FFI::addr($sequenceTypeInfo));
 
             $nestedTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
-            $this->checkStatus(($this->api->GetSequenceElementType)($sequenceTypeInfo, \FFI::addr($nestedTypeInfo->ptr)));
+            $this->checkStatus($this->api->GetSequenceElementType, $sequenceTypeInfo, $nestedTypeInfo->ref());
             $v = $this->nodeInfo($nestedTypeInfo)['type'];
 
             return ['type' => "seq($v)", 'shape' => []];
         } elseif ($onnxType->cdata == $this->ffi->ONNX_TYPE_MAP) {
             $mapTypeInfo = $this->ffi->new('OrtMapTypeInfo*');
-            $this->checkStatus(($this->api->CastTypeInfoToMapTypeInfo)($typeinfo->ptr, \FFI::addr($mapTypeInfo)));
+            $this->checkStatus($this->api->CastTypeInfoToMapTypeInfo, $typeinfo, \FFI::addr($mapTypeInfo));
 
             // key
             $keyType = $this->ffi->new('ONNXTensorElementDataType');
-            $this->checkStatus(($this->api->GetMapKeyType)($mapTypeInfo, \FFI::addr($keyType)));
+            $this->checkStatus($this->api->GetMapKeyType, $mapTypeInfo, \FFI::addr($keyType));
             $k = $this->elementDataTypes()[$keyType->cdata];
 
             // value
             $valueTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
-            $this->checkStatus(($this->api->GetMapValueType)($mapTypeInfo, \FFI::addr($valueTypeInfo->ptr)));
+            $this->checkStatus($this->api->GetMapValueType, $mapTypeInfo, $valueTypeInfo->ref());
             $v = $this->nodeInfo($valueTypeInfo)['type'];
 
             return ['type' => "map($k,$v)", 'shape' => []];
@@ -193,8 +195,9 @@ trait Utils
     {
         if (!isset(self::$defaultAllocator)) {
             // do not free default allocator
-            self::$defaultAllocator = new Pointer(self::ffi()->new('OrtAllocator*'));
-            self::checkStatus((self::api()->GetAllocatorWithDefaultOptions)(\FFI::addr(self::$defaultAllocator->ptr)));
+            $allocator = new Pointer(self::ffi()->new('OrtAllocator*'));
+            self::checkStatus(self::api()->GetAllocatorWithDefaultOptions, $allocator->ref());
+            self::$defaultAllocator = $allocator;
         }
 
         return self::$defaultAllocator;

@@ -19,4 +19,14 @@ class Pointer
             ($this->free)($this->ptr);
         }
     }
+
+    public function ref()
+    {
+        return \FFI::addr($this->ptr);
+    }
+
+    public function string()
+    {
+        return \FFI::string($this->ptr);
+    }
 }

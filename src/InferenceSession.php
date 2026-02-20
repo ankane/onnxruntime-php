@@ -40,60 +40,60 @@ class InferenceSession
 
         // session options
         $sessionOptions = new Pointer($this->ffi->new('OrtSessionOptions*'), $this->api->ReleaseSessionOptions);
-        $this->checkStatus(($this->api->CreateSessionOptions)(\FFI::addr($sessionOptions->ptr)));
+        $this->checkStatus($this->api->CreateSessionOptions, $sessionOptions->ref());
 
         if ($enableCpuMemArena) {
-            $this->checkStatus(($this->api->EnableCpuMemArena)($sessionOptions->ptr));
+            $this->checkStatus($this->api->EnableCpuMemArena, $sessionOptions);
         } else {
-            $this->checkStatus(($this->api->DisableCpuMemArena)($sessionOptions->ptr));
+            $this->checkStatus($this->api->DisableCpuMemArena, $sessionOptions);
         }
         if ($enableMemPattern) {
-            $this->checkStatus(($this->api->EnableMemPattern)($sessionOptions->ptr));
+            $this->checkStatus($this->api->EnableMemPattern, $sessionOptions);
         } else {
-            $this->checkStatus(($this->api->DisableMemPattern)($sessionOptions->ptr));
+            $this->checkStatus($this->api->DisableMemPattern, $sessionOptions);
         }
         if ($enableProfiling) {
-            $this->checkStatus(($this->api->EnableProfiling)($sessionOptions->ptr, $this->ortString($profileFilePrefix ?? 'onnxruntime_profile_')));
+            $this->checkStatus($this->api->EnableProfiling, $sessionOptions, $this->ortString($profileFilePrefix ?? 'onnxruntime_profile_'));
         } else {
-            $this->checkStatus(($this->api->DisableProfiling)($sessionOptions->ptr));
+            $this->checkStatus($this->api->DisableProfiling, $sessionOptions);
         }
         if (!is_null($executionMode)) {
-            $this->checkStatus(($this->api->SetSessionExecutionMode)($sessionOptions->ptr, $executionMode->value));
+            $this->checkStatus($this->api->SetSessionExecutionMode, $sessionOptions, $executionMode->value);
         }
         if (!is_null($freeDimensionOverridesByDenotation)) {
             foreach ($freeDimensionOverridesByDenotation as $k => $v) {
-                $this->checkStatus(($this->api->AddFreeDimensionOverride)($sessionOptions->ptr, $k, $v));
+                $this->checkStatus($this->api->AddFreeDimensionOverride, $sessionOptions, $k, $v);
             }
         }
         if (!is_null($freeDimensionOverridesByName)) {
             foreach ($freeDimensionOverridesByName as $k => $v) {
-                $this->checkStatus(($this->api->AddFreeDimensionOverrideByName)($sessionOptions->ptr, $k, $v));
+                $this->checkStatus($this->api->AddFreeDimensionOverrideByName, $sessionOptions, $k, $v);
             }
         }
         if (!is_null($graphOptimizationLevel)) {
-            $this->checkStatus(($this->api->SetSessionGraphOptimizationLevel)($sessionOptions->ptr, $graphOptimizationLevel->value));
+            $this->checkStatus($this->api->SetSessionGraphOptimizationLevel, $sessionOptions, $graphOptimizationLevel->value);
         }
         if (!is_null($interOpNumThreads)) {
-            $this->checkStatus(($this->api->SetInterOpNumThreads)($sessionOptions->ptr, $interOpNumThreads));
+            $this->checkStatus($this->api->SetInterOpNumThreads, $sessionOptions, $interOpNumThreads);
         }
         if (!is_null($intraOpNumThreads)) {
-            $this->checkStatus(($this->api->SetIntraOpNumThreads)($sessionOptions->ptr, $intraOpNumThreads));
+            $this->checkStatus($this->api->SetIntraOpNumThreads, $sessionOptions, $intraOpNumThreads);
         }
         if (!is_null($logSeverityLevel)) {
-            $this->checkStatus(($this->api->SetSessionLogSeverityLevel)($sessionOptions->ptr, $logSeverityLevel));
+            $this->checkStatus($this->api->SetSessionLogSeverityLevel, $sessionOptions, $logSeverityLevel);
         }
         if (!is_null($logVerbosityLevel)) {
-            $this->checkStatus(($this->api->SetSessionLogVerbosityLevel)($sessionOptions->ptr, $logVerbosityLevel));
+            $this->checkStatus($this->api->SetSessionLogVerbosityLevel, $sessionOptions, $logVerbosityLevel);
         }
         if (!is_null($logid)) {
-            $this->checkStatus(($this->api->SetSessionLogId)($sessionOptions->ptr, $logid));
+            $this->checkStatus($this->api->SetSessionLogId, $sessionOptions, $logid);
         }
         if (!is_null($optimizedModelFilepath)) {
-            $this->checkStatus(($this->api->SetOptimizedModelFilePath)($sessionOptions->ptr, $this->ortString($optimizedModelFilepath)));
+            $this->checkStatus($this->api->SetOptimizedModelFilePath, $sessionOptions, $this->ortString($optimizedModelFilepath));
         }
         if (!is_null($sessionConfigEntries)) {
             foreach ($sessionConfigEntries as $k => $v) {
-                $this->checkStatus(($this->api->AddSessionConfigEntry)($sessionOptions->ptr, $k, $v));
+                $this->checkStatus($this->api->AddSessionConfigEntry, $sessionOptions, $k, $v);
             }
         }
         foreach ($providers as $provider) {
@@ -104,11 +104,11 @@ class InferenceSession
 
             if ($provider == 'CUDAExecutionProvider') {
                 $cudaOptions = new Pointer($this->ffi->new('OrtCUDAProviderOptionsV2*'), $this->api->ReleaseCUDAProviderOptions);
-                $this->checkStatus(($this->api->CreateCUDAProviderOptions)(\FFI::addr($cudaOptions->ptr)));
-                $this->checkStatus(($this->api->SessionOptionsAppendExecutionProvider_CUDA_V2)($sessionOptions->ptr, $cudaOptions->ptr));
+                $this->checkStatus($this->api->CreateCUDAProviderOptions, $cudaOptions->ref());
+                $this->checkStatus($this->api->SessionOptionsAppendExecutionProvider_CUDA_V2, $sessionOptions, $cudaOptions);
             } elseif ($provider == 'CoreMLExecutionProvider') {
                 $coremlFlags = 0;
-                $this->checkStatus($this->ffi->OrtSessionOptionsAppendExecutionProvider_CoreML($sessionOptions->ptr, $coremlFlags));
+                $this->checkStatus($this->ffi->OrtSessionOptionsAppendExecutionProvider_CoreML, $sessionOptions, $coremlFlags);
             } elseif ($provider == 'CPUExecutionProvider') {
                 break;
             } else {
@@ -150,26 +150,26 @@ class InferenceSession
 
         // run options
         $runOptions = new Pointer($this->ffi->new('OrtRunOptions*'), $this->api->ReleaseRunOptions);
-        $this->checkStatus(($this->api->CreateRunOptions)(\FFI::addr($runOptions->ptr)));
+        $this->checkStatus($this->api->CreateRunOptions, $runOptions->ref());
 
         if (!is_null($logVerbosityLevel)) {
-            $this->checkStatus(($this->api->RunOptionsSetRunLogSeverityLevel)($runOptions->ptr, $logSeverityLevel));
+            $this->checkStatus($this->api->RunOptionsSetRunLogSeverityLevel, $runOptions, $logSeverityLevel);
         }
         if (!is_null($logVerbosityLevel)) {
-            $this->checkStatus(($this->api->RunOptionsSetRunLogVerbosityLevel)($runOptions->ptr, $logVerbosityLevel));
+            $this->checkStatus($this->api->RunOptionsSetRunLogVerbosityLevel, $runOptions, $logVerbosityLevel);
         }
         if (!is_null($logid)) {
-            $this->checkStatus(($this->api->RunOptionsSetRunTag)($runOptions->ptr, $logid));
+            $this->checkStatus($this->api->RunOptionsSetRunTag, $runOptions, $logid);
         }
         if (!is_null($terminate)) {
             if ($terminate) {
-                $this->checkStatus(($this->api->RunOptionsSetTerminate)($runOptions->ptr));
+                $this->checkStatus($this->api->RunOptionsSetTerminate, $runOptions);
             } else {
-                $this->checkStatus(($this->api->RunOptionsUnsetTerminate)($runOptions->ptr));
+                $this->checkStatus($this->api->RunOptionsUnsetTerminate, $runOptions);
             }
         }
 
-        $this->checkStatus(($this->api->Run)($this->session->ptr, $runOptions->ptr, $inputNodeNames, $inputTensor, count($inputFeed), $outputNodeNames, count($outputNames), $outputTensor));
+        $this->checkStatus($this->api->Run, $this->session, $runOptions, $inputNodeNames, $inputTensor, count($inputFeed), $outputNodeNames, count($outputNames), $outputTensor);
 
         $output = [];
         foreach ($outputTensor as $t) {
@@ -191,11 +191,11 @@ class InferenceSession
     public function modelmeta()
     {
         $metadata = new Pointer($this->ffi->new('OrtModelMetadata*'), $this->api->ReleaseModelMetadata);
-        $this->checkStatus(($this->api->SessionGetModelMetadata)($this->session->ptr, \FFI::addr($metadata->ptr)));
+        $this->checkStatus($this->api->SessionGetModelMetadata, $this->session, $metadata->ref());
 
         $keys = new Pointer($this->ffi->new('char**'), $this->allocatorFree(...));
         $numKeys = $this->ffi->new('int64_t');
-        $this->checkStatus(($this->api->ModelMetadataGetCustomMetadataMapKeys)($metadata->ptr, $this->allocator->ptr, \FFI::addr($keys->ptr), \FFI::addr($numKeys)));
+        $this->checkStatus($this->api->ModelMetadataGetCustomMetadataMapKeys, $metadata, $this->allocator, $keys->ref(), \FFI::addr($numKeys));
         $keyPtrs = [];
         for ($i = 0; $i < $numKeys->cdata; $i++) {
             $keyPtrs[] = new Pointer($keys->ptr[$i], $this->allocatorFree(...));
@@ -203,37 +203,37 @@ class InferenceSession
 
         $customMetadataMap = [];
         foreach ($keyPtrs as $keyPtr) {
-            $key = \FFI::string($keyPtr->ptr);
+            $key = $keyPtr->string();
             $value = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-            $this->checkStatus(($this->api->ModelMetadataLookupCustomMetadataMap)($metadata->ptr, $this->allocator->ptr, $key, \FFI::addr($value->ptr)));
-            $customMetadataMap[$key] = \FFI::string($value->ptr);
+            $this->checkStatus($this->api->ModelMetadataLookupCustomMetadataMap, $metadata, $this->allocator, $key, $value->ref());
+            $customMetadataMap[$key] = $value->string();
         }
 
         $description = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->ModelMetadataGetDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($description->ptr)));
+        $this->checkStatus($this->api->ModelMetadataGetDescription, $metadata, $this->allocator, $description->ref());
 
         $domain = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->ModelMetadataGetDomain)($metadata->ptr, $this->allocator->ptr, \FFI::addr($domain->ptr)));
+        $this->checkStatus($this->api->ModelMetadataGetDomain, $metadata, $this->allocator, $domain->ref());
 
         $graphName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->ModelMetadataGetGraphName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphName->ptr)));
+        $this->checkStatus($this->api->ModelMetadataGetGraphName, $metadata, $this->allocator, $graphName->ref());
 
         $graphDescription = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->ModelMetadataGetGraphDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphDescription->ptr)));
+        $this->checkStatus($this->api->ModelMetadataGetGraphDescription, $metadata, $this->allocator, $graphDescription->ref());
 
         $producerName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->ModelMetadataGetProducerName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($producerName->ptr)));
+        $this->checkStatus($this->api->ModelMetadataGetProducerName, $metadata, $this->allocator, $producerName->ref());
 
         $version = $this->ffi->new('int64_t');
-        $this->checkStatus(($this->api->ModelMetadataGetVersion)($metadata->ptr, \FFI::addr($version)));
+        $this->checkStatus($this->api->ModelMetadataGetVersion, $metadata, \FFI::addr($version));
 
         return [
             'custom_metadata_map' => $customMetadataMap,
-            'description' => \FFI::string($description->ptr),
-            'domain' => \FFI::string($domain->ptr),
-            'graph_name' => \FFI::string($graphName->ptr),
-            'graph_description' => \FFI::string($graphDescription->ptr),
-            'producer_name' => \FFI::string($producerName->ptr),
+            'description' => $description->string(),
+            'domain' => $domain->string(),
+            'graph_name' => $graphName->string(),
+            'graph_description' => $graphDescription->string(),
+            'producer_name' => $producerName->string(),
             'version' => $version->cdata
         ];
     }
@@ -242,8 +242,8 @@ class InferenceSession
     public function endProfiling()
     {
         $out = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-        $this->checkStatus(($this->api->SessionEndProfiling)($this->session->ptr, $this->allocator->ptr, \FFI::addr($out->ptr)));
-        return \FFI::string($out->ptr);
+        $this->checkStatus($this->api->SessionEndProfiling, $this->session, $this->allocator, $out->ref());
+        return $out->string();
     }
 
     // no way to set providers with C API yet
@@ -252,7 +252,7 @@ class InferenceSession
     {
         $outPtr = $this->ffi->new('char**');
         $lengthPtr = $this->ffi->new('int');
-        $this->checkStatus(($this->api->GetAvailableProviders)(\FFI::addr($outPtr), \FFI::addr($lengthPtr)));
+        $this->checkStatus($this->api->GetAvailableProviders, \FFI::addr($outPtr), \FFI::addr($lengthPtr));
         $length = $lengthPtr->cdata;
         $providers = [];
         for ($i = 0; $i < $length; $i++) {
@@ -267,9 +267,9 @@ class InferenceSession
         $session = new Pointer($this->ffi->new('OrtSession*'), $this->api->ReleaseSession);
         if (is_resource($path) && get_resource_type($path) == 'stream') {
             $contents = stream_get_contents($path);
-            $this->checkStatus(($this->api->CreateSessionFromArray)(self::env()->ptr, $contents, strlen($contents), $sessionOptions->ptr, \FFI::addr($session->ptr)));
+            $this->checkStatus($this->api->CreateSessionFromArray, self::env(), $contents, strlen($contents), $sessionOptions, $session->ref());
         } else {
-            $this->checkStatus(($this->api->CreateSession)(self::env()->ptr, $this->ortString($path), $sessionOptions->ptr, \FFI::addr($session->ptr)));
+            $this->checkStatus($this->api->CreateSession, self::env(), $this->ortString($path), $sessionOptions, $session->ref());
         }
         return $session;
     }
@@ -278,15 +278,15 @@ class InferenceSession
     {
         $inputs = [];
         $numInputNodes = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->SessionGetInputCount)($this->session->ptr, \FFI::addr($numInputNodes)));
+        $this->checkStatus($this->api->SessionGetInputCount, $this->session, \FFI::addr($numInputNodes));
         for ($i = 0; $i < $numInputNodes->cdata; $i++) {
             $namePtr = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-            $this->checkStatus(($this->api->SessionGetInputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr->ptr)));
+            $this->checkStatus($this->api->SessionGetInputName, $this->session, $i, $this->allocator, $namePtr->ref());
 
             $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
-            $this->checkStatus(($this->api->SessionGetInputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
+            $this->checkStatus($this->api->SessionGetInputTypeInfo, $this->session, $i, $typeinfo->ref());
 
-            $inputs[] = array_merge(['name' => \FFI::string($namePtr->ptr)], $this->nodeInfo($typeinfo));
+            $inputs[] = array_merge(['name' => $namePtr->string()], $this->nodeInfo($typeinfo));
         }
         return $inputs;
     }
@@ -295,15 +295,15 @@ class InferenceSession
     {
         $outputs = [];
         $numOutputNodes = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->SessionGetOutputCount)($this->session->ptr, \FFI::addr($numOutputNodes)));
+        $this->checkStatus($this->api->SessionGetOutputCount, $this->session, \FFI::addr($numOutputNodes));
         for ($i = 0; $i < $numOutputNodes->cdata; $i++) {
             $namePtr = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
-            $this->checkStatus(($this->api->SessionGetOutputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr->ptr)));
+            $this->checkStatus($this->api->SessionGetOutputName, $this->session, $i, $this->allocator, $namePtr->ref());
 
             $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
-            $this->checkStatus(($this->api->SessionGetOutputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
+            $this->checkStatus($this->api->SessionGetOutputTypeInfo, $this->session, $i, $typeinfo->ref());
 
-            $outputs[] = array_merge(['name' => \FFI::string($namePtr->ptr)], $this->nodeInfo($typeinfo));
+            $outputs[] = array_merge(['name' => $namePtr->string()], $this->nodeInfo($typeinfo));
         }
         return $outputs;
     }
@@ -385,10 +385,10 @@ class InferenceSession
 
         if (!isset(self::$env)) {
             $env = new Pointer(FFI::instance()->new('OrtEnv*'), self::api()->ReleaseEnv);
-            (self::api()->CreateEnv)(3, 'Default', \FFI::addr($env->ptr));
+            (self::api()->CreateEnv)(3, 'Default', $env->ref());
             // disable telemetry
             // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
-            self::checkStatus((self::api()->DisableTelemetryEvents)($env->ptr));
+            self::checkStatus(self::api()->DisableTelemetryEvents, $env);
             self::$env = $env;
         }
 

@@ -55,8 +55,8 @@ class OrtValue
             $strRefs = [];
             self::fillStringTensorValues($input, $inputTensorValues, $shape, $i, $strRefs);
 
-            self::checkStatus(($api->CreateTensorAsOrtValue)($allocator->ptr, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
-            self::checkStatus(($api->FillStringTensor)($ptr, $inputTensorValues, count($inputTensorValues)));
+            self::checkStatus($api->CreateTensorAsOrtValue, $allocator, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr));
+            self::checkStatus($api->FillStringTensor, $ptr, $inputTensorValues, count($inputTensorValues));
         } else {
             $flatInputSize = array_product($shape);
             $castType = self::castTypes()[$typeEnum];
@@ -64,7 +64,7 @@ class OrtValue
             $i = 0;
             self::fillTensorValues($input, $inputTensorValues, $shape, $i);
 
-            self::checkStatus(($api->CreateTensorWithDataAsOrtValue)(self::allocatorInfo()->ptr, $inputTensorValues, \FFI::sizeof($inputTensorValues), $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
+            self::checkStatus($api->CreateTensorWithDataAsOrtValue, self::allocatorInfo(), $inputTensorValues, \FFI::sizeof($inputTensorValues), $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr));
         }
 
         return new OrtValue($ptr, $inputTensorValues);
@@ -88,7 +88,7 @@ class OrtValue
         }
 
         $ptr = $ffi->new('OrtValue*');
-        self::checkStatus(($api->CreateTensorAsOrtValue)($allocator->ptr, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr)));
+        self::checkStatus($api->CreateTensorAsOrtValue, $allocator, $inputNodeDims, $shapeSize, $typeEnum, \FFI::addr($ptr));
 
         return new OrtValue($ptr);
     }
@@ -130,14 +130,14 @@ class OrtValue
     public function isTensor()
     {
         $outType = $this->ffi->new('ONNXType');
-        $this->checkStatus(($this->api->GetValueType)($this->ptr->ptr, \FFI::addr($outType)));
+        $this->checkStatus($this->api->GetValueType, $this->ptr, \FFI::addr($outType));
         return $outType->cdata == $this->ffi->ONNX_TYPE_TENSOR;
     }
 
     public function dataType()
     {
         $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
-        $this->checkStatus(($this->api->GetTypeInfo)($this->ptr->ptr, \FFI::addr($typeinfo->ptr)));
+        $this->checkStatus($this->api->GetTypeInfo, $this->ptr, $typeinfo->ref());
         return $this->nodeInfo($typeinfo)['type'];
     }
 
@@ -160,7 +160,7 @@ class OrtValue
     {
         if (!isset($this->typeAndShapeInfo)) {
             $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
-            $this->checkStatus(($this->api->GetTensorTypeAndShape)($this->ptr->ptr, \FFI::addr($typeinfo->ptr)));
+            $this->checkStatus($this->api->GetTensorTypeAndShape, $this->ptr, $typeinfo->ref());
             $this->typeAndShapeInfo = $this->tensorTypeAndShape($typeinfo);
         }
 
@@ -191,34 +191,34 @@ class OrtValue
         }
 
         $tensorData = $this->ffi->new($castTypes[$type] . '*');
-        $this->checkStatus(($this->api->GetTensorMutableData)($this->ptr->ptr, \FFI::addr($tensorData)));
+        $this->checkStatus($this->api->GetTensorMutableData, $this->ptr, \FFI::addr($tensorData));
         return $tensorData;
     }
 
     private function createFromOnnxValue($outPtr)
     {
         $outType = $this->ffi->new('ONNXType');
-        $this->checkStatus(($this->api->GetValueType)($outPtr->ptr, \FFI::addr($outType)));
+        $this->checkStatus($this->api->GetValueType, $outPtr, \FFI::addr($outType));
 
         if ($outType->cdata == $this->ffi->ONNX_TYPE_TENSOR) {
             $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
-            $this->checkStatus(($this->api->GetTensorTypeAndShape)($outPtr->ptr, \FFI::addr($typeinfo->ptr)));
+            $this->checkStatus($this->api->GetTensorTypeAndShape, $outPtr, $typeinfo->ref());
 
             [$type, $shape] = $this->tensorTypeAndShape($typeinfo);
 
             // TODO skip if string
             $tensorData = $this->ffi->new('void*');
-            $this->checkStatus(($this->api->GetTensorMutableData)($outPtr->ptr, \FFI::addr($tensorData)));
+            $this->checkStatus($this->api->GetTensorMutableData, $outPtr, \FFI::addr($tensorData));
 
             $outSize = $this->ffi->new('size_t');
-            $this->checkStatus(($this->api->GetTensorShapeElementCount)($typeinfo->ptr, \FFI::addr($outSize)));
+            $this->checkStatus($this->api->GetTensorShapeElementCount, $typeinfo, \FFI::addr($outSize));
             $outputTensorSize = $outSize->cdata;
 
             $castTypes = $this->castTypes();
             if (isset($castTypes[$type])) {
                 $arr = $this->ffi->cast($castTypes[$type] . "[$outputTensorSize]", $tensorData);
             } elseif ($type == $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_STRING) {
-                $arr = $this->createStringsFromOnnxValue($outPtr->ptr, $outputTensorSize);
+                $arr = $this->createStringsFromOnnxValue($outPtr, $outputTensorSize);
             } else {
                 $this->unsupportedType('element', $type);
             }
@@ -227,27 +227,27 @@ class OrtValue
             return $this->fillOutput($arr, $shape, $i);
         } elseif ($outType->cdata == $this->ffi->ONNX_TYPE_SEQUENCE) {
             $out = $this->ffi->new('size_t');
-            $this->checkStatus(($this->api->GetValueCount)($outPtr->ptr, \FFI::addr($out)));
+            $this->checkStatus($this->api->GetValueCount, $outPtr, \FFI::addr($out));
 
             $ret = [];
             for ($i = 0; $i < $out->cdata; $i++) {
                 $seq = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
-                $this->checkStatus(($this->api->GetValue)($outPtr->ptr, $i, $this->allocator->ptr, \FFI::addr($seq->ptr)));
+                $this->checkStatus($this->api->GetValue, $outPtr, $i, $this->allocator,$seq->ref());
                 $ret[] = $this->createFromOnnxValue($seq);
             }
             return $ret;
         } elseif ($outType->cdata == $this->ffi->ONNX_TYPE_MAP) {
             $mapKeys = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
-            $this->checkStatus(($this->api->GetValue)($outPtr->ptr, 0, $this->allocator->ptr, \FFI::addr($mapKeys->ptr)));
+            $this->checkStatus($this->api->GetValue, $outPtr, 0, $this->allocator, $mapKeys->ref());
 
             $mapValues = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
-            $this->checkStatus(($this->api->GetValue)($outPtr->ptr, 1, $this->allocator->ptr, \FFI::addr($mapValues->ptr)));
+            $this->checkStatus($this->api->GetValue, $outPtr, 1, $this->allocator, $mapValues->ref());
 
             $typeShape = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
-            $this->checkStatus(($this->api->GetTensorTypeAndShape)($mapKeys->ptr, \FFI::addr($typeShape->ptr)));
+            $this->checkStatus($this->api->GetTensorTypeAndShape, $mapKeys, $typeShape->ref());
 
             $elemType = $this->ffi->new('ONNXTensorElementDataType');
-            $this->checkStatus(($this->api->GetTensorElementType)($typeShape->ptr, \FFI::addr($elemType)));
+            $this->checkStatus($this->api->GetTensorElementType, $typeShape, \FFI::addr($elemType));
 
             // TODO support more types
             if ($elemType->cdata == $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64) {
@@ -286,12 +286,12 @@ class OrtValue
     private function createStringsFromOnnxValue($outPtr, $outputTensorSize)
     {
         $len = $this->ffi->new('size_t');
-        $this->checkStatus(($this->api->GetStringTensorDataLength)($outPtr, \FFI::addr($len)));
+        $this->checkStatus($this->api->GetStringTensorDataLength, $outPtr, \FFI::addr($len));
 
         $sLen = $len->cdata;
         $s = $this->ffi->new("char[$sLen]");
         $offsets = $this->ffi->new("size_t[$outputTensorSize]");
-        $this->checkStatus(($this->api->GetStringTensorContent)($outPtr, $s, $sLen, $offsets, $outputTensorSize));
+        $this->checkStatus($this->api->GetStringTensorContent, $outPtr, $s, $sLen, $offsets, $outputTensorSize);
 
         $result = [];
         foreach ($offsets as $i => $v) {
@@ -309,7 +309,7 @@ class OrtValue
     {
         if (!isset(self::$allocatorInfo)) {
             $allocatorInfo = new Pointer(FFI::instance()->new('OrtMemoryInfo*'), self::api()->ReleaseMemoryInfo);
-            self::checkStatus((self::api()->CreateCpuMemoryInfo)(1, 0, \FFI::addr($allocatorInfo->ptr)));
+            self::checkStatus(self::api()->CreateCpuMemoryInfo, 1, 0, $allocatorInfo->ref());
             self::$allocatorInfo = $allocatorInfo;
         }
 
