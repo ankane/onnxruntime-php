@@ -9,6 +9,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
+      - if: ${{ runner.os == 'macOS' }}
+        run: brew install composer
       - if: ${{ runner.os == 'Windows' }}
         run: |
           (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini
