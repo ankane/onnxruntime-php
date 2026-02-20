@@ -122,15 +122,27 @@ class InferenceSession
         $this->outputs = $this->loadOutputs();
     }
 
-    public function run($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
-    {
+    public function run(
+        $outputNames,
+        $inputFeed,
+        $logSeverityLevel = null,
+        $logVerbosityLevel = null,
+        $logid = null,
+        $terminate = null
+    ) {
         $ortValues = array_combine(array_keys($inputFeed), $this->createInputTensor($inputFeed));
         $output = $this->runWithOrtValues($outputNames, $ortValues, logSeverityLevel: $logSeverityLevel, logVerbosityLevel: $logVerbosityLevel, logid: $logid, terminate: $terminate);
         return array_map(fn ($v) => $v->toObject(), $output);
     }
 
-    public function runWithOrtValues($outputNames, $inputFeed, $logSeverityLevel = null, $logVerbosityLevel = null, $logid = null, $terminate = null)
-    {
+    public function runWithOrtValues(
+        $outputNames,
+        $inputFeed,
+        $logSeverityLevel = null,
+        $logVerbosityLevel = null,
+        $logid = null,
+        $terminate = null
+    ) {
         $inputFeedSize = count($inputFeed);
         if ($inputFeedSize == 0) {
             throw new Exception('No input');
