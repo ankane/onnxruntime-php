@@ -17,3 +17,10 @@ jobs:
       - run: composer test
       - if: ${{ runner.os == 'macOS' }}
         run: composer test -- --filter CoreML
+
+      - if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo add-apt-repository ppa:ondrej/php
+          sudo apt-get update
+          sudo apt-get install php8.5 php8.5-mbstring php8.5-xml valgrind
+          composer valgrind
