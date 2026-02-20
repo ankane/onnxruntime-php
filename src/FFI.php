@@ -4,7 +4,7 @@ namespace OnnxRuntime;
 
 class FFI
 {
-    public const ORT_API_VERSION = 11;
+    public const ORT_API_VERSION = 24;
 
     public static $lib;
 

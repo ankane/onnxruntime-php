@@ -4,36 +4,30 @@ namespace OnnxRuntime;
 
 class Vendor
 {
-    public const VERSION = '1.23.0';
+    public const VERSION = '1.24.2';
 
     public const PLATFORMS = [
         'x86_64-linux' => [
             'file' => 'onnxruntime-linux-x64-{{version}}',
-            'checksum' => 'b6deea7f2e22c10c043019f294a0ea4d2a6c0ae52a009c34847640db75ec5580',
+            'checksum' => '43725474ba5663642e17684717946693850e2005efbd724ac72da278fead25e6',
             'lib' => 'libonnxruntime.so.{{version}}',
             'ext' => 'tgz'
         ],
         'aarch64-linux' => [
             'file' => 'onnxruntime-linux-aarch64-{{version}}',
-            'checksum' => '0b9f47d140411d938e47915824d8daaa424df95a88b5f1fc843172a75168f7a0',
+            'checksum' => '6715b3d19965a2a6981e78ed4ba24f17a8c30d2d26420dbed10aac7ceca0085e',
             'lib' => 'libonnxruntime.so.{{version}}',
-            'ext' => 'tgz'
-        ],
-        'x86_64-darwin' => [
-            'file' => 'onnxruntime-osx-x86_64-{{version}}',
-            'checksum' => 'a8e43edcaa349cbfc51578a7fc61ea2b88793ccf077b4bc65aca58999d20cf0f',
-            'lib' => 'libonnxruntime.{{version}}.dylib',
             'ext' => 'tgz'
         ],
         'arm64-darwin' => [
             'file' => 'onnxruntime-osx-arm64-{{version}}',
-            'checksum' => '8182db0ebb5caa21036a3c78178f17fabb98a7916bdab454467c8f4cf34bcfdf',
+            'checksum' => '0af4fa503e8ea285245b47ee42d0a7461b8156a81270857da0c1d4ecf858abde',
             'lib' => 'libonnxruntime.{{version}}.dylib',
             'ext' => 'tgz'
         ],
         'x64-windows' => [
             'file' => 'onnxruntime-win-x64-{{version}}',
-            'checksum' => '72c23470310ec79a7d42d27fe9d257e6c98540c73fa5a1db1f67f538c6c16f2f',
+            'checksum' => '8e3e9c826375352e29cb2614fe44f3d7a4b0ff7b8028ad7a456af9d949a7e8b0',
             'lib' => 'onnxruntime.dll',
             'ext' => 'zip'
         ]
@@ -41,6 +35,10 @@ class Vendor
 
     public static function check($event = null)
     {
+        if (self::platformKey() == 'x86_64-darwin') {
+            throw new Exception('Mac x86-64 shared library not available for this version');
+        }
+
         $dest = self::defaultLib();
         if (file_exists($dest)) {
             echo "✔ ONNX Runtime found\n";
