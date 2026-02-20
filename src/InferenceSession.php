@@ -214,11 +214,10 @@ class InferenceSession
         }
 
         $customMetadataMap = [];
-        foreach ($keyPtrs as $keyPtr) {
-            $key = $keyPtr->string();
+        foreach ($keyPtrs as $key) {
             $value = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
             $this->checkStatus($this->api->ModelMetadataLookupCustomMetadataMap, $metadata, $this->allocator, $key, $value->ref());
-            $customMetadataMap[$key] = $value->string();
+            $customMetadataMap[$key->string()] = $value->string();
         }
 
         $description = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
