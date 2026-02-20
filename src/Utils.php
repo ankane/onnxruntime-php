@@ -183,8 +183,7 @@ trait Utils
     private static function cstring($str)
     {
         $bytes = strlen($str) + 1;
-        // TODO fix?
-        $ptr = self::ffi()->new("char[$bytes]", owned: false);
+        $ptr = self::ffi()->new("char[$bytes]");
         \FFI::memcpy($ptr, $str, $bytes - 1);
         $ptr[$bytes - 1] = "\0";
         return $ptr;

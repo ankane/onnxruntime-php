@@ -100,7 +100,7 @@ class OrtValue
         if (count($shape) == 0) {
             for ($j = 0; $j < $dim; $j++) {
                 $strPtr = self::cstring($input[$j]);
-                $ptr[$i] = $strPtr;
+                $ptr[$i] = self::ffi()->cast('char*', $strPtr);
                 $refs[] = $strPtr;
                 $i++;
             }

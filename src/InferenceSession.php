@@ -362,7 +362,7 @@ class InferenceSession
         $ptr = $this->ffi->new("char*[$namesSize]");
         foreach ($names as $i => $name) {
             $strPtr = $this->cstring($name);
-            $ptr[$i] = $strPtr;
+            $ptr[$i] = $this->ffi->cast('char*', $strPtr);
             $refs[] = $strPtr;
         }
         return $ptr;
