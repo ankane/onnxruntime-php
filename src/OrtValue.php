@@ -136,9 +136,8 @@ class OrtValue
 
     public function dataType()
     {
-        $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'));
+        $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
         $this->checkStatus(($this->api->GetTypeInfo)($this->ptr->ptr, \FFI::addr($typeinfo->ptr)));
-        $typeinfo->free = $this->api->ReleaseTypeInfo;
         return $this->nodeInfo($typeinfo)['type'];
     }
 
@@ -160,9 +159,8 @@ class OrtValue
     private function typeAndShapeInfo()
     {
         if (!isset($this->typeAndShapeInfo)) {
-            $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'));
+            $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
             $this->checkStatus(($this->api->GetTensorTypeAndShape)($this->ptr->ptr, \FFI::addr($typeinfo->ptr)));
-            $typeinfo->free = $this->api->ReleaseTensorTypeAndShapeInfo;
             $this->typeAndShapeInfo = $this->tensorTypeAndShape($typeinfo);
         }
 
@@ -203,9 +201,8 @@ class OrtValue
         $this->checkStatus(($this->api->GetValueType)($outPtr->ptr, \FFI::addr($outType)));
 
         if ($outType->cdata == $this->ffi->ONNX_TYPE_TENSOR) {
-            $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'));
+            $typeinfo = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
             $this->checkStatus(($this->api->GetTensorTypeAndShape)($outPtr->ptr, \FFI::addr($typeinfo->ptr)));
-            $typeinfo->free = $this->api->ReleaseTensorTypeAndShapeInfo;
 
             [$type, $shape] = $this->tensorTypeAndShape($typeinfo);
 
@@ -234,24 +231,20 @@ class OrtValue
 
             $ret = [];
             for ($i = 0; $i < $out->cdata; $i++) {
-                $seq = new Pointer($this->ffi->new('OrtValue*'));
+                $seq = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
                 $this->checkStatus(($this->api->GetValue)($outPtr->ptr, $i, $this->allocator->ptr, \FFI::addr($seq->ptr)));
-                $seq->free = $this->api->ReleaseValue;
                 $ret[] = $this->createFromOnnxValue($seq);
             }
             return $ret;
         } elseif ($outType->cdata == $this->ffi->ONNX_TYPE_MAP) {
-            $mapKeys = new Pointer($this->ffi->new('OrtValue*'));
+            $mapKeys = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
             $this->checkStatus(($this->api->GetValue)($outPtr->ptr, 0, $this->allocator->ptr, \FFI::addr($mapKeys->ptr)));
-            $mapKeys->free = $this->api->ReleaseValue;
 
-            $mapValues = new Pointer($this->ffi->new('OrtValue*'));
+            $mapValues = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
             $this->checkStatus(($this->api->GetValue)($outPtr->ptr, 1, $this->allocator->ptr, \FFI::addr($mapValues->ptr)));
-            $mapValues->free = $this->api->ReleaseValue;
 
-            $typeShape = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'));
+            $typeShape = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
             $this->checkStatus(($this->api->GetTensorTypeAndShape)($mapKeys->ptr, \FFI::addr($typeShape->ptr)));
-            $typeShape->free = $this->api->ReleaseTensorTypeAndShapeInfo;
 
             $elemType = $this->ffi->new('ONNXTensorElementDataType');
             $this->checkStatus(($this->api->GetTensorElementType)($typeShape->ptr, \FFI::addr($elemType)));
@@ -315,9 +308,8 @@ class OrtValue
     private static function allocatorInfo()
     {
         if (!isset(self::$allocatorInfo)) {
-            $allocatorInfo = new Pointer(FFI::instance()->new('OrtMemoryInfo*'));
+            $allocatorInfo = new Pointer(FFI::instance()->new('OrtMemoryInfo*'), self::api()->ReleaseMemoryInfo);
             self::checkStatus((self::api()->CreateCpuMemoryInfo)(1, 0, \FFI::addr($allocatorInfo->ptr)));
-            $allocatorInfo->free = self::api()->ReleaseMemoryInfo;
             self::$allocatorInfo = $allocatorInfo;
         }
 

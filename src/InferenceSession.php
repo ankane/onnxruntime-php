@@ -39,9 +39,8 @@ class InferenceSession
         self::env();
 
         // session options
-        $sessionOptions = new Pointer($this->ffi->new('OrtSessionOptions*'));
+        $sessionOptions = new Pointer($this->ffi->new('OrtSessionOptions*'), $this->api->ReleaseSessionOptions);
         $this->checkStatus(($this->api->CreateSessionOptions)(\FFI::addr($sessionOptions->ptr)));
-        $sessionOptions->free = $this->api->ReleaseSessionOptions;
 
         if ($enableCpuMemArena) {
             $this->checkStatus(($this->api->EnableCpuMemArena)($sessionOptions->ptr));
@@ -104,9 +103,8 @@ class InferenceSession
             }
 
             if ($provider == 'CUDAExecutionProvider') {
-                $cudaOptions = new Pointer($this->ffi->new('OrtCUDAProviderOptionsV2*'));
+                $cudaOptions = new Pointer($this->ffi->new('OrtCUDAProviderOptionsV2*'), $this->api->ReleaseCUDAProviderOptions);
                 $this->checkStatus(($this->api->CreateCUDAProviderOptions)(\FFI::addr($cudaOptions->ptr)));
-                $cudaOptions->free = $this->api->ReleaseCUDAProviderOptions;
                 $this->checkStatus(($this->api->SessionOptionsAppendExecutionProvider_CUDA_V2)($sessionOptions->ptr, $cudaOptions->ptr));
             } elseif ($provider == 'CoreMLExecutionProvider') {
                 $coremlFlags = 0;
@@ -151,9 +149,8 @@ class InferenceSession
         $outputNodeNames = $this->createNodeNames($outputNames, $refs);
 
         // run options
-        $runOptions = new Pointer($this->ffi->new('OrtRunOptions*'));
+        $runOptions = new Pointer($this->ffi->new('OrtRunOptions*'), $this->api->ReleaseRunOptions);
         $this->checkStatus(($this->api->CreateRunOptions)(\FFI::addr($runOptions->ptr)));
-        $runOptions->free = $this->api->ReleaseRunOptions;
 
         if (!is_null($logVerbosityLevel)) {
             $this->checkStatus(($this->api->RunOptionsSetRunLogSeverityLevel)($runOptions->ptr, $logSeverityLevel));
@@ -202,9 +199,8 @@ class InferenceSession
         $producerName = $this->ffi->new('char*');
         $version = $this->ffi->new('int64_t');
 
-        $metadata = new Pointer($this->ffi->new('OrtModelMetadata*'));
+        $metadata = new Pointer($this->ffi->new('OrtModelMetadata*'), $this->api->ReleaseModelMetadata);
         $this->checkStatus(($this->api->SessionGetModelMetadata)($this->session->ptr, \FFI::addr($metadata->ptr)));
-        $metadata->free = $this->api->ReleaseModelMetadata;
 
         $customMetadataMap = [];
         $this->checkStatus(($this->api->ModelMetadataGetCustomMetadataMapKeys)($metadata->ptr, $this->allocator->ptr, \FFI::addr($keys), \FFI::addr($numKeys)));
@@ -277,14 +273,13 @@ class InferenceSession
 
     private function loadSession($path, $sessionOptions)
     {
-        $session = new Pointer($this->ffi->new('OrtSession*'));
+        $session = new Pointer($this->ffi->new('OrtSession*'), $this->api->ReleaseSession);
         if (is_resource($path) && get_resource_type($path) == 'stream') {
             $contents = stream_get_contents($path);
             $this->checkStatus(($this->api->CreateSessionFromArray)(self::env()->ptr, $contents, strlen($contents), $sessionOptions->ptr, \FFI::addr($session->ptr)));
         } else {
             $this->checkStatus(($this->api->CreateSession)(self::env()->ptr, $this->ortString($path), $sessionOptions->ptr, \FFI::addr($session->ptr)));
         }
-        $session->free = $this->api->ReleaseSession;
         return $session;
     }
 
@@ -297,9 +292,8 @@ class InferenceSession
             $namePtr = $this->ffi->new('char*');
             $this->checkStatus(($this->api->SessionGetInputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr)));
 
-            $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'));
+            $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->SessionGetInputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
-            $typeinfo->free = $this->api->ReleaseTypeInfo;
 
             $inputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
             $this->allocatorFree($namePtr);
@@ -316,9 +310,8 @@ class InferenceSession
             $namePtr = $this->ffi->new('char*');
             $this->checkStatus(($this->api->SessionGetOutputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr)));
 
-            $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'));
+            $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->SessionGetOutputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
-            $typeinfo->free = $this->api->ReleaseTypeInfo;
 
             $outputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
             $this->allocatorFree($namePtr);
@@ -402,9 +395,8 @@ class InferenceSession
         // TODO use mutex for thread-safety
 
         if (!isset(self::$env)) {
-            $env = new Pointer(FFI::instance()->new('OrtEnv*'));
+            $env = new Pointer(FFI::instance()->new('OrtEnv*'), self::api()->ReleaseEnv);
             (self::api()->CreateEnv)(3, 'Default', \FFI::addr($env->ptr));
-            $env->free = self::api()->ReleaseEnv;
             // disable telemetry
             // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
             self::checkStatus((self::api()->DisableTelemetryEvents)($env->ptr));

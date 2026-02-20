@@ -74,9 +74,8 @@ trait Utils
             $sequenceTypeInfo = $this->ffi->new('OrtSequenceTypeInfo*');
             $this->checkStatus(($this->api->CastTypeInfoToSequenceTypeInfo)($typeinfo->ptr, \FFI::addr($sequenceTypeInfo)));
 
-            $nestedTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'));
+            $nestedTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->GetSequenceElementType)($sequenceTypeInfo, \FFI::addr($nestedTypeInfo->ptr)));
-            $nestedTypeInfo->free = $this->api->ReleaseTypeInfo;
             $v = $this->nodeInfo($nestedTypeInfo)['type'];
 
             return ['type' => "seq($v)", 'shape' => []];
@@ -90,9 +89,8 @@ trait Utils
             $k = $this->elementDataTypes()[$keyType->cdata];
 
             // value
-            $valueTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'));
+            $valueTypeInfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->GetMapValueType)($mapTypeInfo, \FFI::addr($valueTypeInfo->ptr)));
-            $valueTypeInfo->free = $this->api->ReleaseTypeInfo;
             $v = $this->nodeInfo($valueTypeInfo)['type'];
 
             return ['type' => "map($k,$v)", 'shape' => []];

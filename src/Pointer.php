@@ -5,7 +5,7 @@ namespace OnnxRuntime;
 class Pointer
 {
     public $ptr;
-    public $free;
+    private $free;
 
     public function __construct($ptr, $free = null)
     {
@@ -15,7 +15,7 @@ class Pointer
 
     public function __destruct()
     {
-        if (!is_null($this->free)) {
+        if (!is_null($this->free) && !\FFI::isNull($this->ptr)) {
             ($this->free)($this->ptr);
         }
     }
