@@ -1,4 +1,4 @@
-## 0.2.9 (unreleased)
+## 0.2.9 (2026-02-19)
 
 - Fixed uncaught exception with `CoreMLExecutionProvider`
 - Fixed memory leaks
