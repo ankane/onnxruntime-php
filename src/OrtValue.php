@@ -232,7 +232,7 @@ class OrtValue
             $ret = [];
             for ($i = 0; $i < $out->cdata; $i++) {
                 $seq = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
-                $this->checkStatus($this->api->GetValue, $outPtr, $i, $this->allocator,$seq->ref());
+                $this->checkStatus($this->api->GetValue, $outPtr, $i, $this->allocator, $seq->ref());
                 $ret[] = $this->createFromOnnxValue($seq);
             }
             return $ret;
