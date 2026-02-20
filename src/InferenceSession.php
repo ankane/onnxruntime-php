@@ -190,69 +190,52 @@ class InferenceSession
 
     public function modelmeta()
     {
-        $keys = $this->ffi->new('char**');
+        $keys = new Pointer($this->ffi->new('char**'), $this->allocatorFree(...));
         $numKeys = $this->ffi->new('int64_t');
-        $description = $this->ffi->new('char*');
-        $domain = $this->ffi->new('char*');
-        $graphName = $this->ffi->new('char*');
-        $graphDescription = $this->ffi->new('char*');
-        $producerName = $this->ffi->new('char*');
+        $description = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+        $domain = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+        $graphName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+        $graphDescription = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+        $producerName = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
         $version = $this->ffi->new('int64_t');
 
         $metadata = new Pointer($this->ffi->new('OrtModelMetadata*'), $this->api->ReleaseModelMetadata);
         $this->checkStatus(($this->api->SessionGetModelMetadata)($this->session->ptr, \FFI::addr($metadata->ptr)));
 
         $customMetadataMap = [];
-        $this->checkStatus(($this->api->ModelMetadataGetCustomMetadataMapKeys)($metadata->ptr, $this->allocator->ptr, \FFI::addr($keys), \FFI::addr($numKeys)));
+        $this->checkStatus(($this->api->ModelMetadataGetCustomMetadataMapKeys)($metadata->ptr, $this->allocator->ptr, \FFI::addr($keys->ptr), \FFI::addr($numKeys)));
         for ($i = 0; $i < $numKeys->cdata; $i++) {
-            $keyPtr = $keys[$i];
-            $key = \FFI::string($keyPtr);
-            $value = $this->ffi->new('char*');
-            $this->checkStatus(($this->api->ModelMetadataLookupCustomMetadataMap)($metadata->ptr, $this->allocator->ptr, $key, \FFI::addr($value)));
-            $customMetadataMap[$key] = \FFI::string($value);
-
-            $this->allocatorFree($keyPtr);
-            $this->allocatorFree($value);
+            $keyPtr = new Pointer($keys->ptr[$i], $this->allocatorFree(...));
+            $key = \FFI::string($keyPtr->ptr);
+            $value = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+            $this->checkStatus(($this->api->ModelMetadataLookupCustomMetadataMap)($metadata->ptr, $this->allocator->ptr, $key, \FFI::addr($value->ptr)));
+            $customMetadataMap[$key] = \FFI::string($value->ptr);
         }
-        $this->allocatorFree($keys);
 
-        $this->checkStatus(($this->api->ModelMetadataGetDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($description)));
-        $this->checkStatus(($this->api->ModelMetadataGetDomain)($metadata->ptr, $this->allocator->ptr, \FFI::addr($domain)));
-        $this->checkStatus(($this->api->ModelMetadataGetGraphName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphName)));
-        $this->checkStatus(($this->api->ModelMetadataGetGraphDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphDescription)));
-        $this->checkStatus(($this->api->ModelMetadataGetProducerName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($producerName)));
+        $this->checkStatus(($this->api->ModelMetadataGetDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($description->ptr)));
+        $this->checkStatus(($this->api->ModelMetadataGetDomain)($metadata->ptr, $this->allocator->ptr, \FFI::addr($domain->ptr)));
+        $this->checkStatus(($this->api->ModelMetadataGetGraphName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphName->ptr)));
+        $this->checkStatus(($this->api->ModelMetadataGetGraphDescription)($metadata->ptr, $this->allocator->ptr, \FFI::addr($graphDescription->ptr)));
+        $this->checkStatus(($this->api->ModelMetadataGetProducerName)($metadata->ptr, $this->allocator->ptr, \FFI::addr($producerName->ptr)));
         $this->checkStatus(($this->api->ModelMetadataGetVersion)($metadata->ptr, \FFI::addr($version)));
 
-        $ret = [
+        return [
             'custom_metadata_map' => $customMetadataMap,
-            'description' => \FFI::string($description),
-            'domain' => \FFI::string($domain),
-            'graph_name' => \FFI::string($graphName),
-            'graph_description' => \FFI::string($graphDescription),
-            'producer_name' => \FFI::string($producerName),
+            'description' => \FFI::string($description->ptr),
+            'domain' => \FFI::string($domain->ptr),
+            'graph_name' => \FFI::string($graphName->ptr),
+            'graph_description' => \FFI::string($graphDescription->ptr),
+            'producer_name' => \FFI::string($producerName->ptr),
             'version' => $version->cdata
         ];
-
-        // TODO use finally
-        $this->allocatorFree($description);
-        $this->allocatorFree($domain);
-        $this->allocatorFree($graphName);
-        $this->allocatorFree($graphDescription);
-        $this->allocatorFree($producerName);
-
-        return $ret;
     }
 
     // return value has double underscore like Python
     public function endProfiling()
     {
-        $out = $this->ffi->new('char*');
-        $this->checkStatus(($this->api->SessionEndProfiling)($this->session->ptr, $this->allocator->ptr, \FFI::addr($out)));
-        try {
-            return \FFI::string($out);
-        } finally {
-            $this->allocatorFree($out);
-        }
+        $out = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+        $this->checkStatus(($this->api->SessionEndProfiling)($this->session->ptr, $this->allocator->ptr, \FFI::addr($out->ptr)));
+        return \FFI::string($out->ptr);
     }
 
     // no way to set providers with C API yet
@@ -289,14 +272,13 @@ class InferenceSession
         $numInputNodes = $this->ffi->new('size_t');
         $this->checkStatus(($this->api->SessionGetInputCount)($this->session->ptr, \FFI::addr($numInputNodes)));
         for ($i = 0; $i < $numInputNodes->cdata; $i++) {
-            $namePtr = $this->ffi->new('char*');
-            $this->checkStatus(($this->api->SessionGetInputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr)));
+            $namePtr = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+            $this->checkStatus(($this->api->SessionGetInputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr->ptr)));
 
             $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->SessionGetInputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
 
-            $inputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
-            $this->allocatorFree($namePtr);
+            $inputs[] = array_merge(['name' => \FFI::string($namePtr->ptr)], $this->nodeInfo($typeinfo));
         }
         return $inputs;
     }
@@ -307,14 +289,13 @@ class InferenceSession
         $numOutputNodes = $this->ffi->new('size_t');
         $this->checkStatus(($this->api->SessionGetOutputCount)($this->session->ptr, \FFI::addr($numOutputNodes)));
         for ($i = 0; $i < $numOutputNodes->cdata; $i++) {
-            $namePtr = $this->ffi->new('char*');
-            $this->checkStatus(($this->api->SessionGetOutputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr)));
+            $namePtr = new Pointer($this->ffi->new('char*'), $this->allocatorFree(...));
+            $this->checkStatus(($this->api->SessionGetOutputName)($this->session->ptr, $i, $this->allocator->ptr, \FFI::addr($namePtr->ptr)));
 
             $typeinfo = new Pointer($this->ffi->new('OrtTypeInfo*'), $this->api->ReleaseTypeInfo);
             $this->checkStatus(($this->api->SessionGetOutputTypeInfo)($this->session->ptr, $i, \FFI::addr($typeinfo->ptr)));
 
-            $outputs[] = array_merge(['name' => \FFI::string($namePtr)], $this->nodeInfo($typeinfo));
-            $this->allocatorFree($namePtr);
+            $outputs[] = array_merge(['name' => \FFI::string($namePtr->ptr)], $this->nodeInfo($typeinfo));
         }
         return $outputs;
     }
