@@ -14,7 +14,7 @@ class FFI
     {
         if (!isset(self::$instance)) {
             $coreml = '';
-            if (PHP_OS_FAMILY == 'Darwin') {
+            if (PHP_OS_FAMILY == 'Darwin' && php_uname('m') != 'x86_64') {
                 $coreml = 'OrtStatus* OrtSessionOptionsAppendExecutionProvider_CoreML(OrtSessionOptions* options, uint32_t coreml_flags);';
             }
 

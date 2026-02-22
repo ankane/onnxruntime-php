@@ -5,12 +5,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, macos-15-intel, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - if: ${{ runner.os == 'macOS' }}
         run: brew install composer
+      - if: ${{ runner.os == 'macOS' && runner.arch == 'X64' }}
+        run: brew install onnxruntime
       - if: ${{ runner.os == 'Windows' }}
         run: |
           (Get-Content C:\tools\php\php.ini) -replace ';extension=ffi', 'extension=ffi' | Out-File -encoding ASCII C:\tools\php\php.ini

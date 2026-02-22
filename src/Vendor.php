@@ -35,13 +35,14 @@ class Vendor
 
     public static function check($event = null)
     {
-        if (self::platformKey() == 'x86_64-darwin') {
-            throw new Exception('Mac x86-64 shared library not available for this version');
-        }
-
         $dest = self::defaultLib();
         if (file_exists($dest)) {
             echo "✔ ONNX Runtime found\n";
+            return;
+        }
+
+        if (self::platformKey() == 'x86_64-darwin') {
+            echo "✘ ONNX Runtime not found. Run `brew install onnxruntime`\n";
             return;
         }
 
@@ -76,6 +77,9 @@ class Vendor
 
     public static function defaultLib()
     {
+        if (self::platformKey() == 'x86_64-darwin') {
+            return '/usr/local/opt/onnxruntime/lib/libonnxruntime.dylib';
+        }
         return self::libDir() . '/' . self::libFile();
     }
 
