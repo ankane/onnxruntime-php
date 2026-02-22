@@ -29,6 +29,8 @@ And run:
 composer install
 ```
 
+Note: On Mac x86-64, run `brew install onnxruntime` to download the shared library instead
+
 ## Getting Started
 
 Load a model and make predictions
