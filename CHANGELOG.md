@@ -1,7 +1,7 @@
 ## 0.3.0 (unreleased)
 
 - Updated ONNX Runtime to 1.24.2
-- Dropped shared library for Mac x86-64
+- Dropped shared library for Mac x86-64 (no longer provided by upstream)
 - Dropped support for PHP < 8.2
 
 ## 0.2.9 (2026-02-19)
