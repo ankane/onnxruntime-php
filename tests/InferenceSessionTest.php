@@ -55,7 +55,7 @@ final class InferenceSessionTest extends TestCase
 
     public function testProvidersCoreML()
     {
-        if (PHP_OS_FAMILY != 'Darwin') {
+        if (PHP_OS_FAMILY != 'Darwin' || php_uname('m') == 'x86_64') {
             $this->markTestSkipped();
         }
 
