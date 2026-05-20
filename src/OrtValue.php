@@ -243,21 +243,9 @@ class OrtValue
             $mapValues = new Pointer($this->ffi->new('OrtValue*'), $this->api->ReleaseValue);
             $this->checkStatus($this->api->GetValue, $outPtr, 1, $this->allocator, $mapValues->ref());
 
-            $typeShape = new Pointer($this->ffi->new('OrtTensorTypeAndShapeInfo*'), $this->api->ReleaseTensorTypeAndShapeInfo);
-            $this->checkStatus($this->api->GetTensorTypeAndShape, $mapKeys, $typeShape->ref());
-
-            $elemType = $this->ffi->new('ONNXTensorElementDataType');
-            $this->checkStatus($this->api->GetTensorElementType, $typeShape, \FFI::addr($elemType));
-
-            // TODO support more types
-            if ($elemType->cdata == $this->ffi->ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64) {
-                $ret = [];
-                $keys = $this->createFromOnnxValue($mapKeys);
-                $values = $this->createFromOnnxValue($mapValues);
-                return array_combine($keys, $values);
-            } else {
-                $this->unsupportedType('element', $elemType);
-            }
+            $keys = $this->createFromOnnxValue($mapKeys);
+            $values = $this->createFromOnnxValue($mapValues);
+            return array_combine($keys, $values);
         } else {
             $this->unsupportedType('ONNX', $outType->cdata);
         }

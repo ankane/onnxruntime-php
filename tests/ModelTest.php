@@ -52,6 +52,17 @@ final class ModelTest extends TestCase
         $this->assertEquals([[false, false], [true, false]], $output['output:0']);
     }
 
+    public function testOutputMapString()
+    {
+        $model = new Model('tests/support/zipmap_stringfloat.onnx');
+        $output = $model->predict(['X' => [[1.0, 3.0, 5.0], [2.0, 4.0, 6.0]]]);
+        $expected = [
+          ['class1' => 1.0, 'class2' => 3.0, 'class3' => 5.0],
+          ['class1' => 2.0, 'class2' => 4.0, 'class3' => 6.0]
+        ];
+        $this->assertEquals($expected, $output['Z']);
+    }
+
     public function testStream()
     {
         $stream = fopen('tests/support/model.onnx', 'rb');
