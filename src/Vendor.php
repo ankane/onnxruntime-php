@@ -4,30 +4,30 @@ namespace OnnxRuntime;
 
 class Vendor
 {
-    public const VERSION = '1.28.0';
+    public const VERSION = '1.29.0';
 
     public const PLATFORMS = [
         'x86_64-linux' => [
             'file' => 'onnxruntime-linux-x64-{{version}}',
-            'checksum' => 'a3e1b79d7bb1bf09696ce675f49e4064e6c81f6202b8225624fff0e93f8d6407',
+            'checksum' => 'c3fddc4f139a045b0c4902c57410f0694f1c2fdf9b6939fbe38b1aeae7cd14ba',
             'lib' => 'libonnxruntime.so.{{version}}',
             'ext' => 'tgz'
         ],
         'aarch64-linux' => [
             'file' => 'onnxruntime-linux-aarch64-{{version}}',
-            'checksum' => 'e15ff8b5d85afe6c144d97c6fd432254bf76a219daaf17658087d6ecb3e8f0bb',
+            'checksum' => 'e1799098ebc054b370f6176a450f158720f297818c613e5dc99b92e2ec82346f',
             'lib' => 'libonnxruntime.so.{{version}}',
             'ext' => 'tgz'
         ],
         'arm64-darwin' => [
             'file' => 'onnxruntime-osx-arm64-{{version}}',
-            'checksum' => '1268b359718099bde2cedb55787f182a130067bc4f31e8c88478c445b850d3d8',
+            'checksum' => 'd0706fc34f315d8c88639d0a8c81f2e09e815f282cabed3493c06a054352cf92',
             'lib' => 'libonnxruntime.{{version}}.dylib',
             'ext' => 'tgz'
         ],
         'x64-windows' => [
             'file' => 'onnxruntime-win-x64-{{version}}',
-            'checksum' => 'abef733dacbe2f571547a7150b479b5cb9cc0df22f96c24983a42cadb1b4f8bc',
+            'checksum' => 'c9b4b7086b529ad814f428c1bad028e20a25d7dc0699836775faace4ab5b78b2',
             'lib' => 'onnxruntime.dll',
             'ext' => 'zip'
         ]
