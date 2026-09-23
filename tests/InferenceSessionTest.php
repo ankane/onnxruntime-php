@@ -85,4 +85,32 @@ final class InferenceSessionTest extends TestCase
         $this->assertStringContainsString('hello', $file);
         unlink($file);
     }
+
+    public function testTelemetryDisabled()
+    {
+        // ONNX Runtime skips telemetry when it detects CI, so use a child process that looks like a user machine
+        $home = sys_get_temp_dir() . '/onnxruntime-php-' . uniqid();
+        mkdir($home);
+        $env = array_merge(getenv(), ['HOME' => $home, 'XDG_CACHE_HOME' => "$home/.cache"]);
+        foreach (['CI', 'TF_BUILD', 'GITHUB_ACTIONS', 'GITLAB_CI', 'CIRCLECI', 'TRAVIS', 'JENKINS_URL', 'CODEBUILD_BUILD_ID', 'BUILDKITE', 'TEAMCITY_VERSION', 'APPVEYOR', 'BITBUCKET_BUILD_NUMBER', 'SYSTEM_TEAMFOUNDATIONCOLLECTIONURI'] as $name) {
+            $env[$name] = 'false';
+        }
+        unset($env['ORT_DISABLE_TELEMETRY'], $env['ORT_RUNNING_UNIT_TESTS']);
+        $code = sprintf('require %s; new OnnxRuntime\InferenceSession(%s);', var_export(__DIR__ . '/../vendor/autoload.php', true), var_export(__DIR__ . '/support/model.onnx', true));
+        // FFI may be enabled with -d, which the child would not inherit
+        $process = proc_open([PHP_BINARY, '-d', 'extension=ffi', '-d', 'ffi.enable=1', '-r', $code], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
+        $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        $status = proc_close($process);
+
+        $files = [];
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($home, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($iterator as $file) {
+            $files[] = substr($file->getPathname(), strlen($home) + 1);
+            $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($home);
+
+        $this->assertEquals(0, $status, $output);
+        $this->assertEmpty($files, 'ONNX Runtime wrote telemetry files');
+    }
 }

@@ -396,7 +396,21 @@ class InferenceSession
 
         if (!isset(self::$env)) {
             $env = new Pointer(FFI::instance()->new('OrtEnv*'), self::api()->ReleaseEnv);
-            (self::api()->CreateEnv)(3, 'Default', $env->ref());
+
+            // ONNX Runtime 1.29+ starts telemetry on Linux and Mac inside CreateEnv (before
+            // DisableTelemetryEvents can run) and leaks memory; the variable is only read here
+            $setDisableTelemetry = getenv('ORT_DISABLE_TELEMETRY') === false;
+            if ($setDisableTelemetry) {
+                putenv('ORT_DISABLE_TELEMETRY=1');
+            }
+            try {
+                (self::api()->CreateEnv)(3, 'Default', $env->ref());
+            } finally {
+                if ($setDisableTelemetry) {
+                    putenv('ORT_DISABLE_TELEMETRY');
+                }
+            }
+
             // disable telemetry
             // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
             self::checkStatus(self::api()->DisableTelemetryEvents, $env);
