@@ -1,0 +1,8 @@
+# leaks from PHP extension startup (ext/xsl in the PHP 8.5 packages from ppa:ondrej/php)
+{
+   php-module-startup
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   fun:zend_startup_module_ex
+}
