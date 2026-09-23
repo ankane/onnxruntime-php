@@ -44,7 +44,7 @@ trait Utils
             $this->checkStatus($this->api->GetDimensions, $tensorInfo, $nodeDims, $numDims);
             $dims = $this->readArray($nodeDims);
 
-            $symbolicDims = $this->ffi->new("char*[$numDims]");
+            $symbolicDims = $this->ffi->new("CharPtr[$numDims]");
             $this->checkStatus($this->api->GetSymbolicDimensions, $tensorInfo, $symbolicDims, $numDims);
             for ($i = 0; $i < $numDims; $i++) {
                 $namedDim = \FFI::string($symbolicDims[$i]);

@@ -155,7 +155,7 @@ class InferenceSession
         $outputNames ??= array_map(fn ($v) => $v['name'], $this->outputs);
 
         $outputsSize = count($outputNames);
-        $outputTensor = $this->ffi->new("OrtValue*[$outputsSize]");
+        $outputTensor = $this->ffi->new("OrtValuePtr[$outputsSize]");
         $refs = [];
         $inputNodeNames = $this->createNodeNames(array_keys($inputFeed), $refs);
         $outputNodeNames = $this->createNodeNames($outputNames, $refs);

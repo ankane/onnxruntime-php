@@ -381,6 +381,10 @@ class FFI
                     OrtStatus*(* GetCUDAProviderOptionsAsString)();
                     void(* ReleaseCUDAProviderOptions)(OrtCUDAProviderOptionsV2* input);
                 };
+
+                // named types for pointer arrays (PHP FFI retains memory when reading elements of anonymous ones)
+                typedef char* CharPtr;
+                typedef OrtValue* OrtValuePtr;
             ' . $coreml, self::$lib ?? Vendor::defaultLib());
         }
 
