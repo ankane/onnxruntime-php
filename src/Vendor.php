@@ -4,7 +4,7 @@ namespace OnnxRuntime;
 
 class Vendor
 {
-    public const VERSION = '1.30.0';
+    public const VERSION = '1.31.0';
 
     public const PLATFORMS = [
         'x86_64-linux' => [
