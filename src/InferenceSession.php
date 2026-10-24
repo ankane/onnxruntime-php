@@ -163,8 +163,20 @@ class InferenceSession
         // run options
         $runOptions = new Pointer($this->ffi->new('OrtRunOptions*'), $this->api->ReleaseRunOptions);
         $this->checkStatus($this->api->CreateRunOptions, $runOptions->ref());
+        $this->setRunOptions($runOptions, $logSeverityLevel, $logVerbosityLevel, $logid, $terminate);
 
-        if (!is_null($logVerbosityLevel)) {
+        $this->checkStatus($this->api->Run, $this->session, $runOptions, $inputNodeNames, $inputTensor, count($inputFeed), $outputNodeNames, count($outputNames), $outputTensor);
+
+        $output = [];
+        foreach ($outputTensor as $t) {
+            $output[] = new OrtValue($t);
+        }
+        return $output;
+    }
+
+    private function setRunOptions($runOptions, $logSeverityLevel, $logVerbosityLevel, $logid, $terminate)
+    {
+        if (!is_null($logSeverityLevel)) {
             $this->checkStatus($this->api->RunOptionsSetRunLogSeverityLevel, $runOptions, $logSeverityLevel);
         }
         if (!is_null($logVerbosityLevel)) {
@@ -180,14 +192,6 @@ class InferenceSession
                 $this->checkStatus($this->api->RunOptionsUnsetTerminate, $runOptions);
             }
         }
-
-        $this->checkStatus($this->api->Run, $this->session, $runOptions, $inputNodeNames, $inputTensor, count($inputFeed), $outputNodeNames, count($outputNames), $outputTensor);
-
-        $output = [];
-        foreach ($outputTensor as $t) {
-            $output[] = new OrtValue($t);
-        }
-        return $output;
     }
 
     public function inputs()
