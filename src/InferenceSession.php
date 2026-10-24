@@ -164,7 +164,7 @@ class InferenceSession
         $runOptions = new Pointer($this->ffi->new('OrtRunOptions*'), $this->api->ReleaseRunOptions);
         $this->checkStatus($this->api->CreateRunOptions, $runOptions->ref());
 
-        if (!is_null($logVerbosityLevel)) {
+        if (!is_null($logSeverityLevel)) {
             $this->checkStatus($this->api->RunOptionsSetRunLogSeverityLevel, $runOptions, $logSeverityLevel);
         }
         if (!is_null($logVerbosityLevel)) {
