@@ -1,0 +1,14 @@
+{
+   dlopen_doit
+   Memcheck:Leak
+   ...
+   fun:dlopen_doit
+   ...
+}
+{
+   zend_startup_module_ex
+   Memcheck:Leak
+   ...
+   fun:zend_startup_module_ex
+   ...
+}
