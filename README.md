@@ -6,6 +6,12 @@ Check out [an example](https://ankane.org/tensorflow-php)
 
 [![Build Status](https://github.com/ankane/onnxruntime-php/actions/workflows/build.yml/badge.svg)](https://github.com/ankane/onnxruntime-php/actions)
 
+## Requirements
+
+This library requires the [PHP FFI extension](https://www.php.net/manual/en/book.ffi.php).
+
+Ensure that the extension is installed and `ffi.enable` is set to `true` in your `php.ini`.
+
 ## Installation
 
 Run:
