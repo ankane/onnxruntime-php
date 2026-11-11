@@ -1,6 +1,7 @@
 ## 0.3.9 (unreleased)
 
 - Fixed `logSeverityLevel` option for `run` method
+- Fixed temporary files not being removed after download
 
 ## 0.3.8 (2026-10-08)
 
