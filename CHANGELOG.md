@@ -1,5 +1,6 @@
 ## 0.3.9 (unreleased)
 
+- Updated ONNX Runtime to 1.32.0
 - Fixed `logSeverityLevel` option for `run` method
 
 ## 0.3.8 (2026-10-08)
