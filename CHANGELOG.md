@@ -2,6 +2,7 @@
 
 - Updated ONNX Runtime to 1.32.0
 - Fixed `logSeverityLevel` option for `run` method
+- Fixed temporary files not being removed after download
 
 ## 0.3.8 (2026-10-08)
 

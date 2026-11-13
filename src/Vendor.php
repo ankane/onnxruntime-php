@@ -63,14 +63,27 @@ class Vendor
             throw new Exception("Bad checksum: $checksum");
         }
 
-        $tempDest = tempnam(sys_get_temp_dir(), 'onnxruntime') . '.' . $ext;
-        file_put_contents($tempDest, $contents);
+        $tempBase = tempnam(sys_get_temp_dir(), 'onnxruntime');
+        $tempDest = $tempBase . '.' . $ext;
+        $tempFiles = [$tempBase, $tempDest];
 
-        $archive = new \PharData($tempDest);
-        if ($ext != 'zip') {
-            $archive = $archive->decompress();
+        try {
+            file_put_contents($tempDest, $contents);
+
+            $archive = new \PharData($tempDest);
+            if ($ext != 'zip') {
+                $archive = $archive->decompress();
+                $tempFiles[] = $archive->getPath();
+            }
+            $archive->extractTo(self::libDir(), overwrite: true);
+        } finally {
+            unset($archive);
+            foreach ($tempFiles as $tempFile) {
+                if (file_exists($tempFile)) {
+                    unlink($tempFile);
+                }
+            }
         }
-        $archive->extractTo(self::libDir(), overwrite: true);
 
         echo "✔ Success\n";
     }
