@@ -395,7 +395,8 @@ class InferenceSession
         // TODO use mutex for thread-safety
 
         if (!isset(self::$env)) {
-            $env = new Pointer(FFI::instance()->new('OrtEnv*'), self::api()->ReleaseEnv);
+            // do not pass self::api()->ReleaseEnv since destructor order not guaranteed on shutdown
+            $env = new Pointer(FFI::instance()->new('OrtEnv*'));
             (self::api()->CreateEnv)(3, 'Default', $env->ref());
             // disable telemetry
             // https://github.com/microsoft/onnxruntime/blob/master/docs/Privacy.md
